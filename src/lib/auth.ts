@@ -1,0 +1,83 @@
+import { betterAuth } from "better-auth";
+import { google } from "better-auth/providers";
+import { eq } from "drizzle-orm";
+import { db } from "./database";
+import * as schema from "./db/schema";
+
+if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+  throw new Error("Google OAuth credentials are required");
+}
+
+export const auth = betterAuth({
+  database: {
+    provider: "pg",
+    url: process.env.DATABASE_URL!,
+    schema: {
+      user: schema.users,
+      session: schema.sessions,
+      account: schema.accounts,
+      verification: schema.verifications,
+    },
+  },
+  emailAndPassword: {
+    enabled: false,
+  },
+  providers: [
+    google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      scope: [
+        "openid",
+        "email",
+        "profile",
+        "https://www.googleapis.com/auth/classroom.courses.readonly",
+        "https://www.googleapis.com/auth/classroom.coursework.students.readonly", 
+        "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly",
+        "https://www.googleapis.com/auth/classroom.rosters.readonly",
+        "https://www.googleapis.com/auth/classroom.profile.emails"
+      ].join(" "),
+    }),
+  ],
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // 1 day
+  },
+  callbacks: {
+    async signUp({ user, account }) {
+      // Set default role for new users
+      if (account?.providerId === "google") {
+        await db
+          .update(schema.users)
+          .set({ 
+            role: "student",
+            googleClassroomToken: account.accessToken || null,
+            googleRefreshToken: account.refreshToken || null,
+            tokenExpiresAt: account.expiresAt ? new Date(account.expiresAt * 1000) : null,
+          })
+          .where(eq(schema.users.id, user.id));
+      }
+      
+      return { user };
+    },
+    
+    async signIn({ user, account }) {
+      // Update Google tokens on sign in
+      if (account?.providerId === "google") {
+        await db
+          .update(schema.users)
+          .set({
+            googleClassroomToken: account.accessToken || null,
+            googleRefreshToken: account.refreshToken || null,
+            tokenExpiresAt: account.expiresAt ? new Date(account.expiresAt * 1000) : null,
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.users.id, user.id));
+      }
+      
+      return { user };
+    },
+  },
+});
+
+export type Session = typeof auth.$Infer.Session;
+export type User = typeof auth.$Infer.User;

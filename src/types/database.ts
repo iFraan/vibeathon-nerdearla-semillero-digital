@@ -2,8 +2,8 @@ import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 import type {
   users,
   courses,
-  courseEnrollments,
-  assignments,
+  enrollments,
+  coursework,
   submissions,
   studentProgress,
   notifications,
@@ -19,11 +19,11 @@ export type NewUser = InferInsertModel<typeof users>;
 export type Course = InferSelectModel<typeof courses>;
 export type NewCourse = InferInsertModel<typeof courses>;
 
-export type CourseEnrollment = InferSelectModel<typeof courseEnrollments>;
-export type NewCourseEnrollment = InferInsertModel<typeof courseEnrollments>;
+export type CourseEnrollment = InferSelectModel<typeof enrollments>;
+export type NewCourseEnrollment = InferInsertModel<typeof enrollments>;
 
-export type Assignment = InferSelectModel<typeof assignments>;
-export type NewAssignment = InferInsertModel<typeof assignments>;
+export type Assignment = InferSelectModel<typeof coursework>;
+export type NewAssignment = InferInsertModel<typeof coursework>;
 
 export type Submission = InferSelectModel<typeof submissions>;
 export type NewSubmission = InferInsertModel<typeof submissions>;

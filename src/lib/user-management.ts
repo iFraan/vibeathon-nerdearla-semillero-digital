@@ -54,7 +54,6 @@ export class UserManagementService {
         courseName: courses.name,
         enrollmentRole: enrollments.roleInCourse,
         enrolledAt: enrollments.createdAt,
-        enrollmentActive: true, // enrollments table doesn't have isActive
       })
       .from(users)
       .leftJoin(enrollments, eq(users.id, enrollments.userId))
@@ -64,7 +63,7 @@ export class UserManagementService {
     if (result.length === 0) return null;
 
     const user = result[0];
-    const enrollments = result
+    const userEnrollments = result
       .filter((row) => row.enrollmentId !== null)
       .map((row) => ({
         id: row.enrollmentId!,
@@ -72,7 +71,7 @@ export class UserManagementService {
         courseName: row.courseName!,
         role: row.enrollmentRole!,
         enrolledAt: row.enrolledAt!,
-        isActive: row.enrollmentActive!,
+        isActive: true,
       }));
 
     return {
@@ -84,7 +83,7 @@ export class UserManagementService {
       isActive: user.isActive,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-      enrollments,
+      enrollments: userEnrollments,
     };
   }
 
@@ -92,19 +91,6 @@ export class UserManagementService {
   async getUsers(filters: UserFilters = {}): Promise<UserWithEnrollments[]> {
     const { role, isActive, search, courseId } = filters;
     
-    let query = db
-      .select({
-        id: users.id,
-        email: users.email,
-        name: users.name,
-        image: users.image,
-        role: users.role,
-        isActive: users.isActive,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-      })
-      .from(users);
-
     const conditions = [];
 
     if (role) {
@@ -124,20 +110,49 @@ export class UserManagementService {
       );
     }
 
+    let result: any[];
+
     if (courseId) {
-      query = query
+      result = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          name: users.name,
+          image: users.image,
+          role: users.role,
+          isActive: users.isActive,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        })
+        .from(users)
         .innerJoin(enrollments, eq(users.id, enrollments.userId))
         .where(
           and(
             eq(enrollments.courseId, courseId),
             ...conditions
           )
-        );
-    } else if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+        )
+        .orderBy(asc(users.name));
+    } else {
+      const query = db
+        .select({
+          id: users.id,
+          email: users.email,
+          name: users.name,
+          image: users.image,
+          role: users.role,
+          isActive: users.isActive,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        })
+        .from(users);
+      
+      if (conditions.length > 0) {
+        result = await query.where(and(...conditions)).orderBy(asc(users.name));
+      } else {
+        result = await query.orderBy(asc(users.name));
+      }
     }
-
-    const result = await query.orderBy(asc(users.name));
 
     return result.map((user) => ({
       ...user,

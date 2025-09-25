@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { progressService } from "@/lib/services/progress";
 import { db } from "@/lib/database";
-import { enrollments, submissions, coursework } from "@/lib/db/schema";
+import { enrollments, submissions, coursework, courses } from "@/lib/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 
@@ -16,9 +16,9 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    const userRole = session.user.role;
+    const userRole = (session.user as any).role || "student";
     
-    let dashboardData;
+    let dashboardData: any;
 
     switch (userRole) {
       case "student":
@@ -131,7 +131,6 @@ async function getTeacherDashboardData(userId: string) {
         columns: { name: true, email: true }
       },
       coursework: {
-        where: sql`${coursework.courseId} = ANY(${courseIds})`,
         with: {
           course: {
             columns: { name: true }
@@ -198,7 +197,7 @@ async function getCoordinatorDashboardData(userId: string) {
   // Get system-wide metrics
   const totalStudents = await db.select({ count: sql<number>`count(*)` }).from(enrollments).where(eq(enrollments.roleInCourse, "STUDENT"));
   const totalTeachers = await db.select({ count: sql<number>`count(*)` }).from(enrollments).where(eq(enrollments.roleInCourse, "TEACHER"));
-  const totalCourses = await db.select({ count: sql<number>`count(*)` }).from(db.query.courses);
+  const totalCourses = await db.select({ count: sql<number>`count(*)` }).from(courses);
   
   // Mock data for now - in real implementation, these would be calculated
   const systemMetrics = {

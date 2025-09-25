@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { google } from "better-auth/providers";
+import { google } from "better-auth/social-providers";
 import { eq } from "drizzle-orm";
 import { db } from "./database";
 import * as schema from "./db/schema";
@@ -35,7 +35,7 @@ export const auth = betterAuth({
         "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly",
         "https://www.googleapis.com/auth/classroom.rosters.readonly",
         "https://www.googleapis.com/auth/classroom.profile.emails"
-      ].join(" "),
+      ],
     }),
   ],
   session: {
@@ -43,7 +43,7 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24, // 1 day
   },
   callbacks: {
-    async signUp({ user, account }) {
+    async signUp({ user, account }: any) {
       // Set default role for new users
       if (account?.providerId === "google") {
         await db
@@ -60,7 +60,7 @@ export const auth = betterAuth({
       return { user };
     },
     
-    async signIn({ user, account }) {
+    async signIn({ user, account }: any) {
       // Update Google tokens on sign in
       if (account?.providerId === "google") {
         await db
@@ -80,4 +80,3 @@ export const auth = betterAuth({
 });
 
 export type Session = typeof auth.$Infer.Session;
-export type User = typeof auth.$Infer.User;

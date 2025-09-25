@@ -1,23 +1,24 @@
 "use client";
 
-import { auth } from "./auth";
-import type { AuthUser, AuthSession } from "@/types/auth";
+import { createAuthClient } from "better-auth/client";
+import type { AuthUser } from "@/types/auth";
 
 // Client-side auth methods
-export const authClient = auth.createClient();
+export const authClient = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+});
 
 export const {
   signIn,
   signOut,
   signUp,
   useSession,
-  getSession,
 } = authClient;
 
 // Helper functions for client-side auth
-export async function getCurrentUser(): Promise<AuthUser | null> {
+export async function getCurrentUser() {
   try {
-    const session = await getSession();
+    const { data: session } = await authClient.getSession();
     return session?.user || null;
   } catch (error) {
     console.error("Error getting current user:", error);
@@ -25,21 +26,10 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   }
 }
 
-export async function getCurrentSession(): Promise<AuthSession | null> {
-  try {
-    const session = await getSession();
-    return session || null;
-  } catch (error) {
-    console.error("Error getting current session:", error);
-    return null;
-  }
-}
-
 export async function handleSignIn(provider: string = "google", returnTo?: string) {
   try {
-    const redirectUrl = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : "";
-    await signIn(provider, {
-      callbackURL: `/dashboard${redirectUrl}`,
+    await signIn.social({
+      provider: provider as any,
     });
   } catch (error) {
     console.error("Sign in error:", error);
@@ -49,9 +39,8 @@ export async function handleSignIn(provider: string = "google", returnTo?: strin
 
 export async function handleSignOut(returnTo: string = "/") {
   try {
-    await signOut({
-      callbackURL: returnTo,
-    });
+    await signOut();
+    window.location.href = returnTo;
   } catch (error) {
     console.error("Sign out error:", error);
     throw error;

@@ -72,14 +72,15 @@ export class ProgressService {
         ),
         with: {
           coursework: {
-            where: eq(coursework.courseId, courseId),
-            columns: { id: true, dueDate: true }
+            columns: { id: true, dueDate: true, courseId: true }
           }
         }
       });
 
       // Filter submissions that belong to this course
-      const courseSubmissions = studentSubmissions.filter(s => s.coursework);
+      const courseSubmissions = studentSubmissions.filter(s => 
+        s.coursework && s.coursework.courseId === courseId
+      );
 
       // Calculate metrics
       const completedAssignments = courseSubmissions.filter(s => 

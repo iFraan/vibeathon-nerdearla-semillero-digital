@@ -1,13 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "./auth";
-import type { Session, User } from "./auth";
-
-export interface AuthenticatedRequest extends NextRequest {
-  user: User;
-  session: Session;
-}
+import { db } from "./database";
+import { users } from "./db/schema";
+import { eq } from "drizzle-orm";
+import type { Session } from "./auth";
 
 export type UserRole = "student" | "teacher" | "coordinator";
+
+export interface ExtendedUser {
+  id: string;
+  email: string;
+  name: string;
+  image?: string | null;
+  role: UserRole;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AuthenticatedRequest extends NextRequest {
+  user: ExtendedUser;
+  session: Session;
+}
 
 export interface AuthOptions {
   requiredRoles?: UserRole[];
@@ -26,7 +39,7 @@ export async function getSession(request: NextRequest) {
 export async function requireAuth(
   request: NextRequest,
   options: AuthOptions = {}
-): Promise<{ user: User; session: Session } | NextResponse> {
+): Promise<{ user: ExtendedUser; session: Session } | NextResponse> {
   const { requiredRoles, redirectTo = "/login", allowUnauthenticated = false } = options;
 
   try {
@@ -42,10 +55,33 @@ export async function requireAuth(
       return NextResponse.redirect(redirectUrl);
     }
 
+    // Get full user data from database including role
+    const [fullUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, session.user.id))
+      .limit(1);
+
+    if (!fullUser) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    const extendedUser: ExtendedUser = {
+      id: fullUser.id,
+      email: fullUser.email,
+      name: fullUser.name,
+      image: fullUser.image,
+      role: fullUser.role,
+      createdAt: fullUser.createdAt,
+      updatedAt: fullUser.updatedAt,
+    };
+
     // Check role permissions
     if (requiredRoles && requiredRoles.length > 0) {
-      const userRole = session.user.role as UserRole;
-      if (!requiredRoles.includes(userRole)) {
+      if (!requiredRoles.includes(extendedUser.role)) {
         return NextResponse.json(
           { error: "Insufficient permissions" },
           { status: 403 }
@@ -53,7 +89,7 @@ export async function requireAuth(
       }
     }
 
-    return { user: session.user, session };
+    return { user: extendedUser, session };
   } catch (error) {
     console.error("Authentication error:", error);
     
@@ -98,7 +134,7 @@ export function canAccess(userRole: UserRole, resource: string): boolean {
 }
 
 export type AuthResult = 
-  | { success: true; user: User; session: Session }
+  | { success: true; user: ExtendedUser; session: Session }
   | { success: false; error: string; redirect?: string };
 
 export async function validateAuth(request: NextRequest): Promise<AuthResult> {
@@ -113,9 +149,33 @@ export async function validateAuth(request: NextRequest): Promise<AuthResult> {
       };
     }
 
+    // Get full user data from database including role
+    const [fullUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, session.user.id))
+      .limit(1);
+
+    if (!fullUser) {
+      return {
+        success: false,
+        error: "User not found in database",
+      };
+    }
+
+    const extendedUser: ExtendedUser = {
+      id: fullUser.id,
+      email: fullUser.email,
+      name: fullUser.name,
+      image: fullUser.image,
+      role: fullUser.role,
+      createdAt: fullUser.createdAt,
+      updatedAt: fullUser.updatedAt,
+    };
+
     return {
       success: true,
-      user: session.user,
+      user: extendedUser,
       session,
     };
   } catch (error) {

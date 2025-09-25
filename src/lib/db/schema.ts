@@ -123,7 +123,7 @@ export const notifications = pgTable("notifications", {
   recipientId: uuid("recipient_id").references(() => users.id).notNull(),
   senderId: uuid("sender_id").references(() => users.id),
   courseId: uuid("course_id").references(() => courses.id),
-  assignmentId: uuid("assignment_id").references(() => assignments.id),
+  assignmentId: uuid("assignment_id").references(() => coursework.id),
   type: notificationTypeEnum("type").notNull(),
   status: notificationStatusEnum("status").default("sent").notNull(),
   title: varchar("title", { length: 255 }).notNull(),

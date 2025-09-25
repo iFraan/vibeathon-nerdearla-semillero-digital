@@ -10,9 +10,9 @@ import {
   BookOpen, 
   GraduationCap, 
   BarChart3, 
-  Users, 
+  Users,
   Settings,
-  Assignment,
+  ClipboardList,
   Bell,
   Calendar,
   FileText,
@@ -66,7 +66,7 @@ export const menuConfig: MenuSection[] = [
       {
         title: "Assignments",
         href: "/student/assignments",
-        icon: Assignment,
+        icon: ClipboardList,
         requiredRoles: ["student"],
         description: "View and submit assignments"
       },

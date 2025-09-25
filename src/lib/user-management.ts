@@ -1,6 +1,8 @@
 import { eq, and, or, desc, asc } from "drizzle-orm";
 import { db } from "./db";
-import { users, courseEnrollments, courses, type UserRole } from "./db/schema";
+import { users, enrollments, courses } from "./db/schema";
+
+export type UserRole = "student" | "teacher" | "coordinator";
 
 export interface UserWithEnrollments {
   id: string;
@@ -37,7 +39,7 @@ export interface UserUpdate {
 export class UserManagementService {
   // Get user by ID with enrollments
   async getUserById(id: string): Promise<UserWithEnrollments | null> {
-    const result = await db
+    const result: any[] = await db
       .select({
         id: users.id,
         email: users.email,
@@ -47,16 +49,16 @@ export class UserManagementService {
         isActive: users.isActive,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
-        enrollmentId: courseEnrollments.id,
-        courseId: courseEnrollments.courseId,
+        enrollmentId: enrollments.id,
+        courseId: enrollments.courseId,
         courseName: courses.name,
-        enrollmentRole: courseEnrollments.role,
-        enrolledAt: courseEnrollments.enrolledAt,
-        enrollmentActive: courseEnrollments.isActive,
+        enrollmentRole: enrollments.roleInCourse,
+        enrolledAt: enrollments.createdAt,
+        enrollmentActive: true, // enrollments table doesn't have isActive
       })
       .from(users)
-      .leftJoin(courseEnrollments, eq(users.id, courseEnrollments.userId))
-      .leftJoin(courses, eq(courseEnrollments.courseId, courses.id))
+      .leftJoin(enrollments, eq(users.id, enrollments.userId))
+      .leftJoin(courses, eq(enrollments.courseId, courses.id))
       .where(eq(users.id, id));
 
     if (result.length === 0) return null;
@@ -124,11 +126,10 @@ export class UserManagementService {
 
     if (courseId) {
       query = query
-        .innerJoin(courseEnrollments, eq(users.id, courseEnrollments.userId))
+        .innerJoin(enrollments, eq(users.id, enrollments.userId))
         .where(
           and(
-            eq(courseEnrollments.courseId, courseId),
-            eq(courseEnrollments.isActive, true),
+            eq(enrollments.courseId, courseId),
             ...conditions
           )
         );
@@ -192,15 +193,15 @@ export class UserManagementService {
         isActive: users.isActive,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
-        enrolledAt: courseEnrollments.enrolledAt,
-        enrollmentRole: courseEnrollments.role,
+        enrolledAt: enrollments.createdAt,
+        enrollmentRole: enrollments.roleInCourse,
       })
       .from(users)
-      .innerJoin(courseEnrollments, eq(users.id, courseEnrollments.userId))
+      .innerJoin(enrollments, eq(users.id, enrollments.userId))
       .where(
         and(
-          eq(courseEnrollments.courseId, courseId),
-          eq(courseEnrollments.isActive, true),
+          eq(enrollments.courseId, courseId),
+
           eq(users.isActive, true)
         )
       )
@@ -238,19 +239,19 @@ export class UserManagementService {
         isActive: users.isActive,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
-        enrolledAt: courseEnrollments.enrolledAt,
-        enrollmentRole: courseEnrollments.role,
+        enrolledAt: enrollments.createdAt,
+        enrollmentRole: enrollments.roleInCourse,
       })
       .from(users)
-      .innerJoin(courseEnrollments, eq(users.id, courseEnrollments.userId))
+      .innerJoin(enrollments, eq(users.id, enrollments.userId))
       .where(
         and(
-          eq(courseEnrollments.courseId, courseId),
-          eq(courseEnrollments.isActive, true),
+          eq(enrollments.courseId, courseId),
+
           eq(users.isActive, true),
           or(
-            eq(courseEnrollments.role, "teacher"),
-            eq(courseEnrollments.role, "owner")
+            eq(enrollments.roleInCourse, "TEACHER"),
+            eq(enrollments.roleInCourse, "OWNER")
           )
         )
       )
@@ -282,23 +283,21 @@ export class UserManagementService {
     courseId: string,
     role: string = "student"
   ): Promise<void> {
-    await db.insert(courseEnrollments).values({
+    await db.insert(enrollments).values({
       userId,
       courseId,
-      role,
-      isActive: true,
+      roleInCourse: role.toUpperCase(),
     });
   }
 
   // Remove user from course
   async removeUserFromCourse(userId: string, courseId: string): Promise<void> {
     await db
-      .update(courseEnrollments)
-      .set({ isActive: false, updatedAt: new Date() })
+      .delete(enrollments)
       .where(
         and(
-          eq(courseEnrollments.userId, userId),
-          eq(courseEnrollments.courseId, courseId)
+          eq(enrollments.userId, userId),
+          eq(enrollments.courseId, courseId)
         )
       );
   }

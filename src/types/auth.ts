@@ -1,5 +1,8 @@
 import type { User, UserRole } from "./database";
 
+// Re-export UserRole for convenience
+export type { UserRole } from "./database";
+
 // Better-Auth session types
 export interface AuthSession {
   id: string;

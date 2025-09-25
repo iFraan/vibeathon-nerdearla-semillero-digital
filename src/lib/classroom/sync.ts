@@ -259,9 +259,9 @@ export class SyncService {
                 studentId: userId,
                 state: submission.state as any || 'NEW',
                 late: submission.late || false,
-                assignedAt: submission.assignmentSubmission?.assignedAt ? new Date(submission.assignmentSubmission.assignedAt) : new Date(),
-                turnedInAt: submission.turnedInTimestamp ? new Date(submission.turnedInTimestamp) : null,
-                returnedAt: submission.returnedTimestamp ? new Date(submission.returnedTimestamp) : null,
+                assignedAt: submission.creationTime ? new Date(submission.creationTime) : new Date(),
+                turnedInAt: null, // TODO: Extract from submissionHistory
+                returnedAt: null, // TODO: Extract from submissionHistory
                 draftGrade: submission.draftGrade || null,
                 assignedGrade: submission.assignedGrade || null,
                 finalGrade: submission.assignedGrade || submission.draftGrade || null,
@@ -272,8 +272,8 @@ export class SyncService {
                 set: {
                   state: submission.state as any || 'NEW',
                   late: submission.late || false,
-                  turnedInAt: submission.turnedInTimestamp ? new Date(submission.turnedInTimestamp) : null,
-                  returnedAt: submission.returnedTimestamp ? new Date(submission.returnedTimestamp) : null,
+                  turnedInAt: null, // TODO: Extract from submissionHistory
+                  returnedAt: null, // TODO: Extract from submissionHistory
                   draftGrade: submission.draftGrade || null,
                   assignedGrade: submission.assignedGrade || null,
                   finalGrade: submission.assignedGrade || submission.draftGrade || null,

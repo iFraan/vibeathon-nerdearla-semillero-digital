@@ -25,7 +25,7 @@ interface ChartContainerProps {
   title?: string;
   description?: string;
   className?: string;
-  children: React.ReactNode;
+  children: React.ReactElement;
 }
 
 export function ChartContainer({ title, description, className, children }: ChartContainerProps) {
@@ -197,12 +197,12 @@ export function PieChartComponent({
           cx="50%"
           cy="50%"
           labelLine={false}
-          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+          label={({ name, percent }: any) => `${name} ${((percent as number) * 100).toFixed(0)}%`}
           outerRadius={80}
           fill="#8884d8"
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <Cell key={`cell-${entry.name}-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
         <Tooltip formatter={(value) => [`${value}`, 'Count']} />

@@ -20,7 +20,7 @@ import {
   Settings, 
   LogOut, 
   User,
-  Sync
+  RefreshCw
 } from "lucide-react";
 import type { UserRole } from "@/types/auth";
 import { cn } from "@/lib/utils";
@@ -110,7 +110,7 @@ export function DashboardLayout({ children, user, className }: DashboardLayoutPr
               <div className="flex items-center gap-4">
                 {/* Sync Button */}
                 <Button variant="outline" size="sm">
-                  <Sync className="h-4 w-4 mr-2" />
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Sync Data
                 </Button>
 
@@ -196,7 +196,7 @@ export function DashboardLayout({ children, user, className }: DashboardLayoutPr
                   <Badge className="ml-auto text-xs">3</Badge>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Sync className="mr-2 h-4 w-4" />
+                  <RefreshCw className="mr-2 h-4 w-4" />
                   <span>Sync Data</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

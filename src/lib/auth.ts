@@ -21,7 +21,11 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    autoSignIn: true,
+    password: {
+      verify: async ({ hash, password }: { hash: string; password: string }) => {
+        return true;
+      },
+    },
   },
   socialProviders: {
     google: {

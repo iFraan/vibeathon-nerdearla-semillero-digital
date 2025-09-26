@@ -10,7 +10,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { handleSignIn } from "@/lib/auth-client";
+import { handleSignIn, handleDemoSignIn } from "@/lib/auth-client";
 
 export default function SignInPage() {
 	const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +27,19 @@ export default function SignInPage() {
 		} catch (error) {
 			console.error("Sign in failed:", error);
 			setError("Failed to sign in. Please try again.");
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const onDemoSignIn = async () => {
+		try {
+			setIsLoading(true);
+			setError(null);
+			await handleDemoSignIn();
+		} catch (error) {
+			console.error("Demo sign in failed:", error);
+			setError("Failed to sign in with demo. Please try again.");
 		} finally {
 			setIsLoading(false);
 		}
@@ -86,6 +99,35 @@ export default function SignInPage() {
 								<>
 									<LogIn className="mr-2 h-5 w-5" />
 									Continuar con Google
+								</>
+							)}
+						</Button>
+
+						<div className="relative">
+							<div className="absolute inset-0 flex items-center">
+								<span className="w-full border-t border-border" />
+							</div>
+							<div className="relative flex justify-center text-xs uppercase">
+								<span className="bg-background px-2 text-muted-foreground">o</span>
+							</div>
+						</div>
+
+						<Button
+							onClick={onDemoSignIn}
+							disabled={isLoading}
+							variant="outline"
+							className="w-full h-12 text-base font-medium"
+							size="lg"
+						>
+							{isLoading ? (
+								<>
+									<Loader2 className="mr-2 h-5 w-5 animate-spin" />
+									Iniciando sesión...
+								</>
+							) : (
+								<>
+									<Sprout className="mr-2 h-5 w-5" />
+									Probar con Usuario Demo
 								</>
 							)}
 						</Button>

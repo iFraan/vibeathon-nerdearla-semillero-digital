@@ -136,6 +136,19 @@ async function seed() {
 
     console.log('👥 Creating users...');
 
+    // Create demo user first
+    const demoUser = {
+      id: 'demo-user-id',
+      name: 'Usuario Demo',
+      email: 'demo@semillero.digital',
+      emailVerified: true,
+      role: 'student' as const,
+      googleId: null,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
     // Create students
     const studentsData = studentNames.map((name, index) => ({
       id: `student_${index + 1}`,
@@ -162,7 +175,7 @@ async function seed() {
       updatedAt: new Date(),
     }));
 
-    await db.insert(users).values([...studentsData, ...teachersData]);
+    await db.insert(users).values([demoUser, ...studentsData, ...teachersData]);
 
     console.log('📚 Creating courses...');
 
@@ -268,6 +281,18 @@ async function seed() {
     // Enroll students (150 per course)
     const enrollmentsData = [];
     
+    // Enroll demo user in both courses
+    for (let courseIndex = 0; courseIndex < 2; courseIndex++) {
+      enrollmentsData.push({
+        id: randomUUID(),
+        courseId: courseIds[courseIndex],
+        userId: 'demo-user-id',
+        roleInCourse: 'STUDENT',
+        externalId: `gc_demo_user_course_${courseIndex + 1}`,
+        createdAt: new Date(),
+      });
+    }
+    
     // Distribute students evenly across courses (150 each)
     for (let studentIndex = 0; studentIndex < 300; studentIndex++) {
       const courseIndex = Math.floor(studentIndex / 150);
@@ -302,6 +327,44 @@ async function seed() {
     const statusWeights = [0.55, 0.25, 0.15, 0.05]; // entregada, pendiente, atrasada, no_entregada
     const statusMapping = ['RETURNED', 'NEW', 'LATE', 'MISSED']; // Maps to submission states
     const submissionsData = [];
+
+    // Create submissions for demo user in both courses (all assignments)
+    for (let courseIndex = 0; courseIndex < 2; courseIndex++) {
+      for (let moduleIndex = 0; moduleIndex < 3; moduleIndex++) {
+        for (let assignmentIndex = 0; assignmentIndex < 3; assignmentIndex++) {
+          const courseworkIndex = courseIndex * 9 + moduleIndex * 3 + assignmentIndex;
+          const courseworkId = courseworkIds[courseworkIndex];
+          const statusIndex = rng.weighted(statusWeights);
+          const status = statusMapping[statusIndex];
+          
+          const submission: any = {
+            id: randomUUID(),
+            externalId: `gc_submission_demo_cw${courseworkIndex}`,
+            courseworkId,
+            studentId: 'demo-user-id',
+            state: status,
+            late: status === 'LATE',
+            assignedAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          // Add submission details based on status
+          if (status === 'RETURNED') {
+            submission.turnedInAt = rng.date(-45, -1);
+            submission.returnedAt = rng.date(-30, 0);
+            submission.finalGrade = rng.integer(70, 100);
+            submission.assignedGrade = submission.finalGrade;
+          } else if (status === 'LATE') {
+            submission.turnedInAt = rng.date(-15, 0);
+            submission.finalGrade = rng.integer(60, 90);
+            submission.assignedGrade = submission.finalGrade;
+          }
+
+          submissionsData.push(submission);
+        }
+      }
+    }
 
     // Create submissions for each student for each assignment
     for (let studentIndex = 0; studentIndex < 300; studentIndex++) {
@@ -348,6 +411,62 @@ async function seed() {
     console.log('📊 Calculating student progress metrics...');
 
     const progressData = [];
+
+    // Create progress data for demo user in both courses
+    for (let courseIndex = 0; courseIndex < 2; courseIndex++) {
+      const studentId = 'demo-user-id';
+      const courseId = courseIds[courseIndex];
+
+      // Count submissions by status for demo user in this course
+      const studentSubmissions = submissionsData.filter(s => 
+        s.studentId === studentId && 
+        courseworkIds.includes(s.courseworkId) &&
+        courseworkIds.indexOf(s.courseworkId) >= courseIndex * 9 && 
+        courseworkIds.indexOf(s.courseworkId) < (courseIndex + 1) * 9
+      );
+      const totalAssignments = 9; // 9 assignments per course
+      
+      const completedAssignments = studentSubmissions.filter(s => s.state === 'RETURNED').length;
+      const lateSubmissions = studentSubmissions.filter(s => s.state === 'LATE').length;
+      const missedAssignments = studentSubmissions.filter(s => s.state === 'MISSED').length;
+      const onTimeSubmissions = completedAssignments; // Assuming RETURNED means on time
+      
+      // Calculate metrics
+      const completionRate = Math.round((completedAssignments / totalAssignments) * 100);
+      const riskLevel = Math.round(((lateSubmissions * 0.3 + missedAssignments * 0.7) / totalAssignments) * 100);
+      
+      // Calculate average grade from completed assignments
+      const gradedSubmissions = studentSubmissions.filter(s => s.finalGrade);
+      const averageGrade = gradedSubmissions.length > 0 
+        ? Math.round(gradedSubmissions.reduce((sum, s) => sum + s.finalGrade!, 0) / gradedSubmissions.length)
+        : null;
+
+      progressData.push({
+        id: randomUUID(),
+        studentId,
+        courseId,
+        totalAssignments,
+        completedAssignments,
+        averageGrade,
+        attendanceRate: rng.integer(75, 100), // Random attendance rate
+        lastActivity: rng.date(-7, 0), // Last activity within last week
+        completionRate,
+        onTimeSubmissions,
+        lateSubmissions,
+        missedAssignments,
+        progressData: {
+          riskLevel,
+          modules: {
+            module1: rng.integer(60, 100),
+            module2: rng.integer(60, 100),
+            module3: rng.integer(60, 100),
+          },
+        },
+        calculatedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
 
     for (let studentIndex = 0; studentIndex < 300; studentIndex++) {
       const courseIndex = Math.floor(studentIndex / 150);

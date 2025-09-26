@@ -46,6 +46,24 @@ export async function handleSignOut(returnTo: string = "/") {
 	}
 }
 
+export async function handleDemoSignIn(returnTo: string = "/dashboard") {
+	try {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/demo-sign-in`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+		});
+		
+		if (response.ok) {
+			window.location.href = returnTo;
+		} else {
+			throw new Error("Demo sign in failed");
+		}
+	} catch (error) {
+		console.error("Demo sign in error:", error);
+		throw error;
+	}
+}
+
 export function hasRole(
 	user: AuthUser | null,
 	roles: string | string[],

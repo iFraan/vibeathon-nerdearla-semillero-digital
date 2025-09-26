@@ -7,13 +7,14 @@ export const notificationTypeEnum = pgEnum("notification_type", ["assignment", "
 export const notificationStatusEnum = pgEnum("notification_status", ["sent", "delivered", "read", "failed"]);
 export const assignmentStatusEnum = pgEnum("assignment_status", ["assigned", "submitted", "graded", "returned"]);
 
-// Users table
-export const users = pgTable("users", {
+// Users table (Better-Auth compatible with additional fields)
+export const users = pgTable("user", {
   id: text("id").primaryKey(),
-  email: varchar("email", { length: 255 }).unique().notNull(),
-  emailVerified: boolean("email_verified").default(false),
-  name: varchar("name", { length: 255 }).notNull(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
+  // Additional fields for Semillero Digital
   googleId: varchar("google_id", { length: 255 }).unique(),
   role: userRoleEnum("role").default("student").notNull(),
   isActive: boolean("is_active").default(true).notNull(),
@@ -21,7 +22,10 @@ export const users = pgTable("users", {
   googleRefreshToken: text("google_refresh_token"),
   tokenExpiresAt: timestamp("token_expires_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
 // Courses table (synced from Google Classroom)
@@ -139,37 +143,52 @@ export const notifications = pgTable("notifications", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Better-Auth tables for sessions
-export const sessions = pgTable("sessions", {
+// Sessions table (Better-Auth compatible)
+export const sessions = pgTable("session", {
   id: text("id").primaryKey(),
-  userId: text("user_id").references(() => users.id).notNull(),
   expiresAt: timestamp("expires_at").notNull(),
-  ipAddress: varchar("ip_address", { length: 45 }),
-  userAgent: text("user_agent"),
+  token: text("token").notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .$onUpdate(() => new Date())
+    .notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
 });
 
-export const accounts = pgTable("accounts", {
+export const accounts = pgTable("account", {
   id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
-  userId: text("user_id").references(() => users.id).notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
-  expiresAt: timestamp("expires_at"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+  scope: text("scope"),
   password: text("password"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
-export const verifications = pgTable("verifications", {
+export const verifications = pgTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
 // Relations

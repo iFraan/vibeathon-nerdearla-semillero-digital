@@ -4,19 +4,13 @@ import {
 	BarChart3,
 	Bell,
 	BookOpen,
-	Calendar,
-	ClipboardCheck,
-	ClipboardList,
-	FileText,
 	GraduationCap,
-	Settings,
 	TrendingUp,
-	UserCheck,
-	Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const roles = [
 	{
@@ -106,14 +100,17 @@ export default function Home() {
 							</span>
 						</div>
 					</div>
-					<Button
-						onClick={handleLogin}
-						disabled={loading}
-						className="font-semibold px-6 shadow-md rounded-[var(--radius)] bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
-						size="lg"
-					>
-						{loading ? "Redirigiendo..." : "Ingresar"}
-					</Button>
+					<div className="flex items-center gap-2">
+						<ThemeToggle />
+						<Button
+							onClick={handleLogin}
+							disabled={loading}
+							className="font-semibold px-6 shadow-md rounded-[var(--radius)] bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground transition-colors"
+							size="lg"
+						>
+							{loading ? "Redirigiendo..." : "Ingresar"}
+						</Button>
+					</div>
 				</div>
 			</nav>
 

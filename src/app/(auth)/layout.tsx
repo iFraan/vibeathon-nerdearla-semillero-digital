@@ -3,15 +3,18 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { DashboardContent } from "./dashboard-content";
 
-export default async function DashboardPage() {
+interface Props {
+  children: React.ReactNode;
+}
+
+export default async function Layout({ children }: Props) {
   const session = await auth.api.getSession({
     headers: await headers()
   });
   
   if (!session?.user) {
-    redirect("/login");
+    redirect("/login?callbackUrl=");
   }
 
   const user = {
@@ -22,14 +25,10 @@ export default async function DashboardPage() {
     image: session.user.image || undefined
   };
 
-  console.log({
-    session, user
-  })
-
   return (
     <DashboardLayout user={user}>
       <Suspense fallback={<div>Loading dashboard...</div>}>
-        <DashboardContent user={user} />
+        {children}
       </Suspense>
     </DashboardLayout>
   );

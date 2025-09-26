@@ -48,16 +48,11 @@ export async function handleSignOut(returnTo: string = "/") {
 
 export async function handleDemoSignIn(returnTo: string = "/dashboard") {
 	try {
-		const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/demo-sign-in`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
+		await signIn.email({
+			email: "demo@semillero.digital",
+			password: "demo123", // This will be ignored since user exists
+			callbackURL: returnTo,
 		});
-		
-		if (response.ok) {
-			window.location.href = returnTo;
-		} else {
-			throw new Error("Demo sign in failed");
-		}
 	} catch (error) {
 		console.error("Demo sign in error:", error);
 		throw error;

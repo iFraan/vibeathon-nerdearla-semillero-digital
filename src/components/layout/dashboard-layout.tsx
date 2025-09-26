@@ -19,6 +19,7 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { handleSignOut } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/auth";
 
@@ -165,7 +166,10 @@ export function DashboardLayout({
 									<span>Settings</span>
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
-								<DropdownMenuItem className="text-red-600">
+								<DropdownMenuItem
+									className="text-red-600"
+									onClick={() => handleSignOut("/sign-in")}
+								>
 									<LogOut className="mr-2 h-4 w-4" />
 									<span>Log out</span>
 								</DropdownMenuItem>

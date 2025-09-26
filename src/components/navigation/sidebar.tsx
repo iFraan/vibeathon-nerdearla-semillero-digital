@@ -27,7 +27,8 @@ import {
   FileText,
   TrendingUp,
   UserCheck,
-  ClipboardCheck
+  ClipboardCheck,
+  Sprout
 } from "lucide-react";
 import type { UserRole } from "@/types/auth";
 
@@ -197,7 +198,7 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
           <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">SD</span>
+            <Sprout className="text-primary-foreground w-5 h-5" />
           </div>
           <div className="group-data-[collapsible=icon]:hidden">
             <h2 className="text-sm font-semibold">Semillero Digital</h2>

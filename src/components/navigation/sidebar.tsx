@@ -194,7 +194,7 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
     .filter(section => section.items.length > 0);
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar variant="floating" collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
           <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">

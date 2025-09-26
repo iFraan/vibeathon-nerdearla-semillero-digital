@@ -9,6 +9,7 @@ import {
 	CheckCircle,
 	Clock,
 	FileText,
+	Sprout,
 	TrendingUp,
 	Trophy,
 } from "lucide-react";
@@ -239,9 +240,6 @@ export function StudentOverview({
 			{/* Dashboard Header */}
 			<div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-background border-b border-border px-4 py-6 rounded-xl shadow-sm">
 				<div className="flex items-center gap-3">
-					<div className="h-12 w-12 rounded-[var(--radius-xl)] bg-primary flex items-center justify-center shadow font-extrabold text-2xl text-primary-foreground border-2 border-border select-none">
-						SD
-					</div>
 					<div>
 						<h2 className="text-2xl font-extrabold text-foreground leading-tight mb-1">
 							¡Bienvenido de nuevo! 👋
@@ -386,13 +384,13 @@ export function StudentOverview({
 			)}
 
 			{/* Upcoming Deadlines */}
-			<div className="bg-background rounded-xl border border-border shadow">
+			<Card>
 				<CardHeader>
-					<CardTitle className="flex items-center gap-2 text-foreground">
+					<CardTitle className="flex items-center gap-2">
 						<Calendar className="h-5 w-5" />
 						Próximos Vencimientos
 					</CardTitle>
-					<CardDescription className="text-muted-foreground">
+					<CardDescription>
 						Tus próximas tareas y sus fechas límite
 					</CardDescription>
 				</CardHeader>
@@ -412,13 +410,13 @@ export function StudentOverview({
 						/>
 					)}
 				</CardContent>
-			</div>
+			</Card>
 
 			{/* Recent Activity */}
-			<div className="bg-background rounded-xl border border-border shadow">
+			<Card>
 				<CardHeader>
-					<CardTitle className="text-foreground">Actividad Reciente</CardTitle>
-					<CardDescription className="text-muted-foreground">
+					<CardTitle>Actividad Reciente</CardTitle>
+					<CardDescription>
 						Tus últimas entregas y calificaciones
 					</CardDescription>
 				</CardHeader>
@@ -437,7 +435,7 @@ export function StudentOverview({
 						/>
 					)}
 				</CardContent>
-			</div>
+			</Card>
 		</div>
 	);
 }

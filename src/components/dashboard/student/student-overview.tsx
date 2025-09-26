@@ -139,17 +139,22 @@ const activityColumns: ColumnDef<any>[] = [
 		accessorKey: "type",
 		header: "Tipo",
 		cell: ({ row }) => {
-			const type = row.original.type;
+			const type = row.original.type as 'submission' | 'grade' | 'assignment';
 			const icons = {
 				submission: FileText,
 				grade: Trophy,
 				assignment: BookOpen,
 			};
+			const labels = {
+				submission: "Entrega",
+				grade: "Calificación",
+				assignment: "Tarea",
+			};
 			const Icon = icons[type as keyof typeof icons];
 			return (
 				<div className="flex items-center gap-2">
 					<Icon className="h-4 w-4" />
-					<span className="capitalize">{type}</span>
+					<span className="capitalize">{labels[type] ?? type}</span>
 				</div>
 			);
 		},

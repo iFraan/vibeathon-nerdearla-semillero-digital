@@ -46,7 +46,7 @@ export class ClassroomClient {
       columns: {
         accessToken: true,
         refreshToken: true,
-        expiresAt: true
+        accessTokenExpiresAt: true
       }
     });
 
@@ -55,7 +55,7 @@ export class ClassroomClient {
     }
 
     // Check if token is expired or expiring soon (5 minutes buffer)
-    const expiresAt = account.expiresAt;
+    const expiresAt = account.accessTokenExpiresAt;
     const now = new Date();
     const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
 
@@ -102,7 +102,7 @@ export class ClassroomClient {
         .set({
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,
-          expiresAt: tokens.expiresAt,
+          accessTokenExpiresAt: tokens.expiresAt,
           updatedAt: new Date()
         })
         .where(eq(accounts.userId, this.userId));

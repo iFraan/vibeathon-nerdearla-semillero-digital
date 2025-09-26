@@ -2,10 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuBadge,
+  SidebarSeparator,
+} from "@/components/ui/sidebar";
 import { 
   BookOpen, 
   GraduationCap, 
@@ -168,12 +177,11 @@ export const menuConfig: MenuSection[] = [
   }
 ];
 
-interface SidebarProps {
+interface AppSidebarProps {
   userRole: UserRole;
-  className?: string;
 }
 
-export function Sidebar({ userRole, className }: SidebarProps) {
+export function AppSidebar({ userRole }: AppSidebarProps) {
   const pathname = usePathname();
 
   // Filter menu items based on user role
@@ -185,57 +193,50 @@ export function Sidebar({ userRole, className }: SidebarProps) {
     .filter(section => section.items.length > 0);
 
   return (
-    <nav className={cn("flex flex-col space-y-6 p-4", className)}>
-      {filteredSections.map((section, sectionIndex) => (
-        <div key={section.title} className="space-y-2">
-          {sectionIndex > 0 && <Separator className="my-4" />}
-          
-          <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            {section.title}
-          </h3>
-          
-          <div className="space-y-1">
-            {section.items.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-              const Icon = item.icon;
-              
-              return (
-                <Link key={item.href} href={item.href}>
-                  <Button
-                    variant={isActive ? "secondary" : "ghost"}
-                    className={cn(
-                      "w-full justify-start gap-2 h-auto p-2",
-                      isActive && "bg-secondary text-secondary-foreground"
-                    )}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <div className="flex-1 text-left">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          {item.title}
-                        </span>
-                        {item.badge && (
-                          <Badge 
-                            variant={item.badge.variant} 
-                            className="ml-auto text-xs"
-                          >
-                            {item.badge.text}
-                          </Badge>
-                        )}
-                      </div>
-                      {item.description && (
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {item.description}
-                        </p>
-                      )}
-                    </div>
-                  </Button>
-                </Link>
-              );
-            })}
+    <Sidebar>
+      <SidebarHeader>
+        <div className="flex items-center gap-2 px-2">
+          <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-sm">SD</span>
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold">Semillero Digital</h2>
+            <p className="text-xs text-muted-foreground">Learning Dashboard</p>
           </div>
         </div>
-      ))}
-    </nav>
+      </SidebarHeader>
+      <SidebarContent>
+        {filteredSections.map((section, sectionIndex) => (
+          <SidebarGroup key={section.title}>
+            {sectionIndex > 0 && <SidebarSeparator />}
+            <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {section.items.map((item) => {
+                  const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                  const Icon = item.icon;
+                  
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton asChild isActive={isActive} tooltip={item.description}>
+                        <Link href={item.href}>
+                          <Icon />
+                          <span>{item.title}</span>
+                          {item.badge && (
+                            <SidebarMenuBadge>
+                              {item.badge.text}
+                            </SidebarMenuBadge>
+                          )}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+    </Sidebar>
   );
 }

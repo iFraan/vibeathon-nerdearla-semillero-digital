@@ -258,16 +258,16 @@ async function seed() {
 
     console.log('📋 Creating coursework (assignments)...');
 
-    // Create 3 assignments per module (9 per course)
+    // Create 5 assignments per module (15 per course)
     const courseworkData = [];
     const courseworkIds: string[] = [];
     const assignmentTemplates = [
-      'Tarea 1', 'Tarea 2', 'Proyecto Final'
+      'Tarea 1', 'Tarea 2', 'Tarea 3', 'Tarea 4', 'Proyecto Final'
     ];
 
     for (let courseIndex = 0; courseIndex < 2; courseIndex++) {
       for (let moduleIndex = 0; moduleIndex < 3; moduleIndex++) {
-        for (let assignmentIndex = 0; assignmentIndex < 3; assignmentIndex++) {
+        for (let assignmentIndex = 0; assignmentIndex < 5; assignmentIndex++) {
           const dueDate = rng.date(-60, 15); // Between 60 days ago and 15 days from now
           const courseworkId = randomUUID();
           courseworkIds.push(courseworkId);
@@ -346,8 +346,8 @@ async function seed() {
     // Create submissions for demo user in both courses (all assignments)
     for (let courseIndex = 0; courseIndex < 2; courseIndex++) {
       for (let moduleIndex = 0; moduleIndex < 3; moduleIndex++) {
-        for (let assignmentIndex = 0; assignmentIndex < 3; assignmentIndex++) {
-          const courseworkIndex = courseIndex * 9 + moduleIndex * 3 + assignmentIndex;
+        for (let assignmentIndex = 0; assignmentIndex < 5; assignmentIndex++) {
+          const courseworkIndex = courseIndex * 15 + moduleIndex * 5 + assignmentIndex;
           const courseworkId = courseworkIds[courseworkIndex];
           const statusIndex = rng.weighted(statusWeights);
           const status = statusMapping[statusIndex];
@@ -384,10 +384,10 @@ async function seed() {
     // Create submissions for each student for each assignment
     for (let studentIndex = 0; studentIndex < 300; studentIndex++) {
       const courseIndex = Math.floor(studentIndex / 150);
-      
+
       for (let moduleIndex = 0; moduleIndex < 3; moduleIndex++) {
-        for (let assignmentIndex = 0; assignmentIndex < 3; assignmentIndex++) {
-          const courseworkIndex = courseIndex * 9 + moduleIndex * 3 + assignmentIndex;
+        for (let assignmentIndex = 0; assignmentIndex < 5; assignmentIndex++) {
+          const courseworkIndex = courseIndex * 15 + moduleIndex * 5 + assignmentIndex;
           const courseworkId = courseworkIds[courseworkIndex];
           const statusIndex = rng.weighted(statusWeights);
           const status = statusMapping[statusIndex];
@@ -433,13 +433,13 @@ async function seed() {
       const courseId = courseIds[courseIndex];
 
       // Count submissions by status for demo user in this course
-      const studentSubmissions = submissionsData.filter(s => 
-        s.studentId === studentId && 
+      const studentSubmissions = submissionsData.filter(s =>
+        s.studentId === studentId &&
         courseworkIds.includes(s.courseworkId) &&
-        courseworkIds.indexOf(s.courseworkId) >= courseIndex * 9 && 
-        courseworkIds.indexOf(s.courseworkId) < (courseIndex + 1) * 9
+        courseworkIds.indexOf(s.courseworkId) >= courseIndex * 15 &&
+        courseworkIds.indexOf(s.courseworkId) < (courseIndex + 1) * 15
       );
-      const totalAssignments = 9; // 9 assignments per course
+      const totalAssignments = 15; // 15 assignments per course
       
       const completedAssignments = studentSubmissions.filter(s => s.state === 'RETURNED').length;
       const lateSubmissions = studentSubmissions.filter(s => s.state === 'LATE').length;
@@ -537,13 +537,13 @@ async function seed() {
     await db.insert(studentProgress).values(progressData);
 
     // Calculate and display final metrics
-    const totalTasks = 300 * 9; // 300 students * 9 tasks each
+    const totalTasks = 300 * 15; // 300 students * 15 tasks each
     const completedTasks = submissionsData.filter(s => s.state === 'RETURNED').length;
     const pendingTasks = submissionsData.filter(s => s.state === 'NEW').length;
     const lateTasks = submissionsData.filter(s => s.state === 'LATE').length;
     const missedTasks = submissionsData.filter(s => s.state === 'MISSED').length;
 
-    const studentsWithAllCompleted = progressData.filter(p => p.completedAssignments === 9).length;
+    const studentsWithAllCompleted = progressData.filter(p => p.completedAssignments === 15).length;
     const completionPercentage = Math.round((studentsWithAllCompleted / 300) * 100);
 
     console.log('\n📈 Final Metrics:');
@@ -552,7 +552,7 @@ async function seed() {
     console.log(`👨‍🏫 Teachers: 30 (each managing 10 students)`);
     console.log(`📚 Courses: 2`);
     console.log(`📝 Modules per course: 3`);
-    console.log(`📋 Tasks per module: 3`);
+    console.log(`📋 Tasks per module: 5`);
     console.log(`📊 Total tasks: ${totalTasks}`);
     console.log(`✅ Completed (entregada): ${completedTasks} (${Math.round(completedTasks/totalTasks*100)}%)`);
     console.log(`⏳ Pending (pendiente): ${pendingTasks} (${Math.round(pendingTasks/totalTasks*100)}%)`);

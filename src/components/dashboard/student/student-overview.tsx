@@ -240,6 +240,17 @@ export function StudentOverview({
 		}
 	};
 
+	const getRiskLabel = (level: string) => {
+		switch (level) {
+			case "high":
+				return "Alto";
+			case "medium":
+				return "Medio";
+			case "low":
+				return "Bajo";
+		}
+	};
+
 	return (
 		<div className="space-y-8">
 			{/* Dashboard Header */}
@@ -341,7 +352,7 @@ export function StudentOverview({
 							description="Porcentaje completado por curso"
 						/>
 					</div>
-					<div className="bg-background rounded-xl border border-border shadow p-4 flex flex-col">
+					<div className="bg-background rounded-xl border border-border shadow p-6 flex flex-col">
 						<div className="mb-6">
 							<h3 className="text-lg font-semibold text-foreground mb-1">
 								Estado de Cursos
@@ -367,7 +378,7 @@ export function StudentOverview({
 									</div>
 									<div className="flex items-center gap-2">
 										<Badge variant={getRiskColor(course.riskLevel) as any}>
-											{course.riskLevel} riesgo
+											Riesgo {getRiskLabel(course.riskLevel)}
 										</Badge>
 										<span className="text-sm font-medium">
 											{Math.round(course.completionRate)}%

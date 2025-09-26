@@ -8,7 +8,8 @@ import {
 	studentProgress,
 	submissions,
 } from "@/lib/db/schema";
-import { protectedProcedure, router } from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "@/server/api/trpc";
+import { Course } from "@/types/database";
 
 // Helper functions from REST API logic
 
@@ -246,9 +247,7 @@ async function getCoordinatorCourses() {
 	return { courses: coursesData, stats, userRole: "coordinator" };
 }
 
-// tRPC router
-
-export const coursesRouter = router({
+export const coursesRouter = createTRPCRouter({
 	list: protectedProcedure.input(z.void()).query(async ({ ctx }) => {
 		const session = ctx.session;
 		if (!session?.user) {
@@ -256,7 +255,7 @@ export const coursesRouter = router({
 		}
 		const userId = session.user.id;
 		const userRole = (session.user as any).role || "student";
-		let coursesData: any;
+		let coursesData: {courses: Partial<Course>[],userRole:string};
 
 		switch (userRole) {
 			case "student":
@@ -275,3 +274,40 @@ export const coursesRouter = router({
 		return coursesData;
 	}),
 });
+
+
+// export const coursesRouter = createTRPCRouter({
+//   hello: publicProcedure
+//     .input(z.object({ text: z.string() }))
+//     .query(({ input }) => {
+//       return {
+//         greeting: `Hello ${input.text}`,
+//       };
+//     }),
+
+//   getAll: protectedProcedure.query(async ({ctx}) => {
+//     const courses = await ctx.db.query.courses.findMany()
+//     return courses
+//   }),
+
+//   // create: protectedProcedure
+//   //   .input(z.object({ name: z.string().min(1) }))
+//   //   .mutation(async ({ ctx, input }) => {
+//   //     await ctx.db.insert(posts).values({
+//   //       name: input.name,
+//   //       createdById: ctx.session.user.id,
+//   //     });
+//   //   }),
+
+//   // getLatest: protectedProcedure.query(async ({ ctx }) => {
+//   //   const post = await ctx.db.query.posts.findFirst({
+//   //     orderBy: (posts, { desc }) => [desc(posts.createdAt)],
+//   //   });
+
+//   //   return post ?? null;
+//   // }),
+
+//   getSecretMessage: protectedProcedure.query(() => {
+//     return "you can now see this secret message!";
+//   }),
+// });

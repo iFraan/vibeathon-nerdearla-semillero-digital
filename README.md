@@ -65,6 +65,28 @@ Open [http://localhost:3000](http://localhost:3000) with your browser.
 - **Teachers**: Manage classes, track student progress, grade assignments
 - **Coordinators**: Multi-class analytics, reports, system administration
 
+## 📱 Screenshots
+
+### Authentication
+![Login Page](screenshots/login-page.png)
+
+### Landing Page
+![Landing Page](screenshots/landing.png)
+
+### Dashboard Views
+![Dashboard Light Theme](screenshots/dashboard-light.png)
+![Dashboard Dark Theme](screenshots/dashboard-dark.png)
+![Dashboard Tasks](screenshots/dashboard-tasks.png)
+![Dashboard Recent Activity](screenshots/dashboard-recent-activity.png)
+
+### Core Features
+![Tasks Overview](screenshots/tasks.png)
+![Courses](screenshots/courses.png)
+
+### UI Components
+![User Dropdown](screenshots/user-dropdown.png)
+![Sidebar Closed](screenshots/sidebar-closed.png)
+
 ## 🎯 Core Features
 
 ### Student Features

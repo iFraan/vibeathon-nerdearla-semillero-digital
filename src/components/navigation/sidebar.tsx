@@ -187,7 +187,7 @@ export const menuConfig: MenuSection[] = [
         icon: Settings,
         requiredRoles: ["student", "teacher", "coordinator"],
         description: "Configuración de cuenta y preferencias",
-        disabled: false
+        disabled: true
       }
     ]
   }

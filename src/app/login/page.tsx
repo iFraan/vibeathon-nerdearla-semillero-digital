@@ -116,7 +116,7 @@ export default function SignInPage() {
 							onClick={onDemoSignIn}
 							disabled={isLoading}
 							variant="outline"
-							className="w-full h-12 text-base font-medium"
+							className="w-full h-12 text-base font-medium bg-muted hover:text-foreground"
 							size="lg"
 						>
 							{isLoading ? (

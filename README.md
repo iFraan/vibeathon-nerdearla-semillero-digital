@@ -140,33 +140,13 @@ See `.env.example` for all required environment variables:
 - `GOOGLE_CLIENT_ID`: Google OAuth client ID
 - `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
 
-## 📁 Project Structure
-
-```
-src/
-├── app/                    # Next.js App Router
-│   ├── (dashboard)/       # Dashboard layouts
-│   │   ├── student/       # Student dashboard
-│   │   ├── teacher/       # Teacher dashboard
-│   │   └── coordinator/   # Coordinator dashboard
-│   └── api/               # API routes
-├── components/            # React components
-│   ├── dashboard/         # Dashboard-specific components
-│   ├── auth/              # Authentication components
-│   └── ui/                # ShadCN UI components
-├── lib/                   # Utility libraries
-│   ├── auth/              # Better-Auth configuration
-│   ├── db/                # Database schema and connection
-│   └── google/            # Google API services
-└── types/                 # TypeScript type definitions
-```
-
 ## 🗄 Database Commands
 
 - `pnpm db:generate`: Generate migration files
 - `pnpm db:push`: Push schema changes to database
 - `pnpm db:migrate`: Run migrations
 - `pnpm db:studio`: Open Drizzle Studio
+- `pnpm db:seed`: Seed DB
 
 ## 📋 Development Scripts
 

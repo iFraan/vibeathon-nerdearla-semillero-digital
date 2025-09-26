@@ -141,84 +141,87 @@ export default async function CoursesPage() {
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-4">
+            <CardContent className="flex flex-col gap-4 h-full justify-between">
               <p className="text-sm text-muted-foreground line-clamp-2">
                 {course.description}
               </p>
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span>{course.enrollmentCount} estudiantes</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{course.activeAssignments} tareas activas</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>{course.startDate ? new Date(course.startDate).toLocaleDateString() : 'Sin fecha'}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                  <span>{course.completionRate}% completado</span>
-                </div>
-              </div>
-
-              {/* Role-specific progress indicators */}
-              {userRole === "student" && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Tu progreso</span>
-                    <span>{course.completionRate}%</span>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span>{course.enrollmentCount} estudiantes</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all"
-                      style={{ width: `${course.completionRate}%` }}
-                    />
+
+
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>{course.activeAssignments} tareas activas</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span>{course.startDate ? new Date(course.startDate).toLocaleDateString() : 'Sin fecha'}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                    <span>{course.completionRate}% completado</span>
                   </div>
                 </div>
-              )}
 
-              {userRole === "teacher" && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Promedio clase</span>
-                    <span>{course.averageGrade}/100</span>
+                {/* Role-specific progress indicators */}
+                {userRole === "student" && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Tu progreso</span>
+                      <span>{course.completionRate}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all"
+                        style={{ width: `${course.completionRate}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-green-600 h-2 rounded-full transition-all"
-                      style={{ width: `${course.averageGrade}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Action buttons based on role */}
-              <div className="flex gap-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1 gap-2">
-                  <Eye className="h-4 w-4" />
-                  Ver curso
-                </Button>
+                )}
 
                 {userRole === "teacher" && (
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Settings className="h-4 w-4" />
-                    Gestionar
-                  </Button>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Promedio clase</span>
+                      <span>{course.averageGrade}/100</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-green-600 h-2 rounded-full transition-all"
+                        style={{ width: `${course.averageGrade}%` }}
+                      />
+                    </div>
+                  </div>
                 )}
 
-                {userRole === "coordinator" && (
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <BarChart3 className="h-4 w-4" />
-                    Analytics
+                {/* Action buttons based on role */}
+                <div className="flex gap-2 pt-2 justify-end">
+                  <Button variant="outline" size="sm" className="flex-1 gap-2">
+                    <Eye className="h-4 w-4" />
+                    Ver curso
                   </Button>
-                )}
+
+                  {userRole === "teacher" && (
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Settings className="h-4 w-4" />
+                      Gestionar
+                    </Button>
+                  )}
+
+                  {userRole === "coordinator" && (
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <BarChart3 className="h-4 w-4" />
+                      Analytics
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

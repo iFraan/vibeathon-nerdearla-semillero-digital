@@ -209,7 +209,7 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
       <SidebarContent>
         {filteredSections.map((section, sectionIndex) => (
           <SidebarGroup key={section.title}>
-            {sectionIndex > 0 && <SidebarSeparator />}
+            {/* {sectionIndex > 0 && <SidebarSeparator />} */}
             <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>

@@ -52,100 +52,100 @@ export interface MenuItem {
 // Define menu configuration
 export const menuConfig: MenuSection[] = [
   {
-    title: "Dashboard",
+    title: "Panel Principal",
     items: [
       {
-        title: "Overview",
+        title: "Resumen",
         href: "/dashboard",
         icon: BarChart3,
         requiredRoles: ["student", "teacher", "coordinator"],
-        description: "Main dashboard overview"
+        description: "Vista general del panel principal"
       }
     ]
   },
   {
-    title: "Learning",
+    title: "Aprendizaje",
     items: [
       {
-        title: "My Courses",
+        title: "Mis Cursos",
         href: "/courses",
         icon: BookOpen,
         requiredRoles: ["student"],
-        description: "View your enrolled courses"
+        description: "Ver tus cursos inscritos"
       },
       {
-        title: "Assignments",
+        title: "Tareas",
         href: "/assignments",
         icon: ClipboardList,
         requiredRoles: ["student"],
-        description: "View and submit assignments"
+        description: "Ver y enviar tareas"
       },
       {
-        title: "Progress",
+        title: "Progreso",
         href: "/progress",
         icon: TrendingUp,
         requiredRoles: ["student"],
-        description: "Track your learning progress"
+        description: "Seguir tu progreso de aprendizaje"
       }
     ]
   },
   {
-    title: "Teaching",
+    title: "Enseñanza",
     items: [
       {
-        title: "My Classes",
+        title: "Mis Clases",
         href: "/classes",
         icon: Users,
         requiredRoles: ["teacher", "coordinator"],
-        description: "Manage your classes"
+        description: "Gestionar tus clases"
       },
       {
-        title: "Assignments",
+        title: "Tareas",
         href: "/assignments",
         icon: ClipboardCheck,
         requiredRoles: ["teacher", "coordinator"],
-        description: "Create and manage assignments"
+        description: "Crear y gestionar tareas"
       },
       {
-        title: "Submissions",
+        title: "Entregas",
         href: "/submissions",
         icon: FileText,
-        badge: { text: "New", variant: "destructive" },
+        badge: { text: "Nuevo", variant: "destructive" },
         requiredRoles: ["teacher", "coordinator"],
-        description: "Review student submissions"
+        description: "Revisar entregas de estudiantes"
       },
       {
-        title: "Grading",
+        title: "Calificaciones",
         href: "/grading",
         icon: GraduationCap,
         requiredRoles: ["teacher", "coordinator"],
-        description: "Grade student work"
+        description: "Calificar trabajo de estudiantes"
       }
     ]
   },
   {
-    title: "Administration",
+    title: "Administración",
     items: [
       {
-        title: "Analytics",
+        title: "Analíticas",
         href: "/analytics",
         icon: BarChart3,
         requiredRoles: ["coordinator"],
-        description: "Program analytics and reports"
+        description: "Analíticas del programa e informes"
       },
       {
-        title: "User Management",
+        title: "Gestión de Usuarios",
         href: "/users",
         icon: UserCheck,
         requiredRoles: ["coordinator"],
-        description: "Manage students and teachers"
+        description: "Gestionar estudiantes y profesores"
       },
       {
-        title: "Reports",
+        title: "Reportes",
         href: "/reports",
         icon: FileText,
         requiredRoles: ["coordinator"],
-        description: "Generate and export reports"
+        description: "Generar y exportar reportes"
       }
     ]
   },
@@ -153,26 +153,26 @@ export const menuConfig: MenuSection[] = [
     title: "General",
     items: [
       {
-        title: "Notifications",
+        title: "Notificaciones",
         href: "/notifications",
         icon: Bell,
         badge: { text: "3", variant: "secondary" },
         requiredRoles: ["student", "teacher", "coordinator"],
-        description: "View notifications and announcements"
+        description: "Ver notificaciones y anuncios"
       },
       {
-        title: "Calendar",
+        title: "Calendario",
         href: "/calendar",
         icon: Calendar,
         requiredRoles: ["student", "teacher", "coordinator"],
-        description: "View assignment deadlines and events"
+        description: "Ver fechas límite de tareas y eventos"
       },
       {
-        title: "Settings",
+        title: "Configuración",
         href: "/settings",
         icon: Settings,
         requiredRoles: ["student", "teacher", "coordinator"],
-        description: "Account and preference settings"
+        description: "Configuración de cuenta y preferencias"
       }
     ]
   }
@@ -202,7 +202,7 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
           </div>
           <div className="group-data-[collapsible=icon]:hidden">
             <h2 className="text-sm font-semibold">Semillero Digital</h2>
-            <p className="text-xs text-muted-foreground">Learning Dashboard</p>
+            <p className="text-xs text-muted-foreground">Panel de Aprendizaje</p>
           </div>
         </div>
       </SidebarHeader>

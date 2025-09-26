@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/database";
+import { courses, enrollments, users, submissions, coursework, studentProgress } from "@/lib/db/schema";
+import { eq, and, desc, sql } from "drizzle-orm";
 import type { Course, User } from "@/types";
 
 interface StudentInfo {
@@ -52,7 +55,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const classes = generateMockClassData(userRole);
+    const classes = await getClassData(session.user.id, userRole);
 
     return NextResponse.json({ data: classes });
   } catch (error) {
@@ -64,255 +67,161 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function generateMockClassData(role: string): ClassWithDetails[] {
-  const baseDate = new Date();
-  
-  const teacherClasses: ClassWithDetails[] = [
-    {
-      id: "course-1",
-      googleClassroomId: "gc-course-1",
-      name: "Web Development Fundamentals",
-      description: "Learn HTML, CSS, JavaScript and modern web development practices",
-      teacherId: "teacher-1",
-      createdAt: new Date(baseDate.getTime() - 90 * 24 * 60 * 60 * 1000),
-      updatedAt: new Date(baseDate.getTime() - 1 * 24 * 60 * 60 * 1000),
-      students: [],
-      assignments: [],
-      studentInfo: [
-        {
-          id: "student-1",
-          name: "María González",
-          email: "maria.gonzalez@email.com",
-          progress: 95,
-          lastActive: new Date(baseDate.getTime() - 2 * 60 * 60 * 1000),
-          assignmentsCompleted: 8,
-          totalAssignments: 8,
-          averageGrade: 92
-        },
-        {
-          id: "student-2",
-          name: "Carlos Mendoza",
-          email: "carlos.mendoza@email.com",
-          progress: 87,
-          lastActive: new Date(baseDate.getTime() - 4 * 60 * 60 * 1000),
-          assignmentsCompleted: 7,
-          totalAssignments: 8,
-          averageGrade: 88
-        },
-        {
-          id: "student-3",
-          name: "Ana Pérez",
-          email: "ana.perez@email.com",
-          progress: 78,
-          lastActive: new Date(baseDate.getTime() - 8 * 60 * 60 * 1000),
-          assignmentsCompleted: 6,
-          totalAssignments: 8,
-          averageGrade: 85
-        },
-        {
-          id: "student-4",
-          name: "Diego Silva",
-          email: "diego.silva@email.com",
-          progress: 65,
-          lastActive: new Date(baseDate.getTime() - 24 * 60 * 60 * 1000),
-          assignmentsCompleted: 5,
-          totalAssignments: 8,
-          averageGrade: 75
-        },
-        {
-          id: "student-5",
-          name: "Laura Torres",
-          email: "laura.torres@email.com",
-          progress: 92,
-          lastActive: new Date(baseDate.getTime() - 1 * 60 * 60 * 1000),
-          assignmentsCompleted: 8,
-          totalAssignments: 8,
-          averageGrade: 90
-        }
-      ],
-      recentActivity: [
-        {
-          studentId: "student-1",
-          studentName: "María González",
-          action: "Submitted JavaScript Functions Exercise",
-          timestamp: new Date(baseDate.getTime() - 30 * 60 * 1000)
-        },
-        {
-          studentId: "student-5",
-          studentName: "Laura Torres",
-          action: "Submitted JavaScript Functions Exercise",
-          timestamp: new Date(baseDate.getTime() - 45 * 60 * 1000)
-        },
-        {
-          studentId: "student-2",
-          studentName: "Carlos Mendoza",
-          action: "Viewed HTML/CSS feedback",
-          timestamp: new Date(baseDate.getTime() - 2 * 60 * 60 * 1000)
-        }
-      ],
-      stats: {
-        totalStudents: 32,
-        activeStudents: 28,
-        averageProgress: 85,
-        pendingSubmissions: 12
+async function getClassData(userId: string, userRole: string): Promise<ClassWithDetails[]> {
+  try {
+    // Get courses based on user role
+    let coursesQuery;
+    
+    if (userRole === "teacher") {
+      // First get teacher's course IDs
+      const teacherCourses = await db.query.enrollments.findMany({
+        where: and(
+          eq(enrollments.userId, userId),
+          eq(enrollments.roleInCourse, "TEACHER")
+        ),
+        columns: { courseId: true }
+      });
+      const teacherCourseIds = teacherCourses.map(e => e.courseId);
+      
+      // Then get courses with details
+      if (teacherCourseIds.length === 0) {
+        coursesQuery = Promise.resolve([]);
+      } else {
+        coursesQuery = db.query.courses.findMany({
+          with: {
+            enrollments: {
+              with: {
+                user: true
+              }
+            },
+            coursework: {
+              with: {
+                submissions: {
+                  with: {
+                    student: true
+                  }
+                }
+              }
+            }
+          }
+        }).then(allCourses => 
+          allCourses.filter(course => teacherCourseIds.includes(course.id))
+        );
       }
-    },
-    {
-      id: "course-2",
-      googleClassroomId: "gc-course-2",
-      name: "Advanced React Development",
-      description: "Master React hooks, state management, and modern React patterns",
-      teacherId: "teacher-1",
-      createdAt: new Date(baseDate.getTime() - 60 * 24 * 60 * 60 * 1000),
-      updatedAt: new Date(baseDate.getTime() - 2 * 60 * 60 * 1000),
-      students: [],
-      assignments: [],
-      studentInfo: [
-        {
-          id: "student-6",
-          name: "Roberto Kim",
-          email: "roberto.kim@email.com",
-          progress: 88,
-          lastActive: new Date(baseDate.getTime() - 1 * 60 * 60 * 1000),
-          assignmentsCompleted: 4,
-          totalAssignments: 5,
-          averageGrade: 91
-        },
-        {
-          id: "student-7",
-          name: "Sofia Ramírez",
-          email: "sofia.ramirez@email.com",
-          progress: 76,
-          lastActive: new Date(baseDate.getTime() - 3 * 60 * 60 * 1000),
-          assignmentsCompleted: 3,
-          totalAssignments: 5,
-          averageGrade: 82
-        },
-        {
-          id: "student-8",
-          name: "Miguel Santos",
-          email: "miguel.santos@email.com",
-          progress: 94,
-          lastActive: new Date(baseDate.getTime() - 2 * 60 * 60 * 1000),
-          assignmentsCompleted: 5,
-          totalAssignments: 5,
-          averageGrade: 95
-        }
-      ],
-      recentActivity: [
-        {
-          studentId: "student-8",
-          studentName: "Miguel Santos",
-          action: "Started React Components Project",
-          timestamp: new Date(baseDate.getTime() - 45 * 60 * 1000)
-        },
-        {
-          studentId: "student-6",
-          studentName: "Roberto Kim",
-          action: "Submitted Hooks Workshop",
-          timestamp: new Date(baseDate.getTime() - 3 * 60 * 60 * 1000)
-        }
-      ],
-      stats: {
-        totalStudents: 18,
-        activeStudents: 16,
-        averageProgress: 82,
-        pendingSubmissions: 7
-      }
-    }
-  ];
-
-  // Coordinators see all classes
-  if (role === "coordinator") {
-    const additionalClasses: ClassWithDetails[] = [
-      {
-        id: "course-3",
-        googleClassroomId: "gc-course-3",
-        name: "Database Design & SQL",
-        description: "Learn database design principles and SQL query optimization",
-        teacherId: "teacher-2",
-        createdAt: new Date(baseDate.getTime() - 75 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(baseDate.getTime() - 3 * 60 * 60 * 1000),
-        students: [],
-        assignments: [],
-        studentInfo: [
-          {
-            id: "student-9",
-            name: "Carmen Vega",
-            email: "carmen.vega@email.com",
-            progress: 91,
-            lastActive: new Date(baseDate.getTime() - 2 * 60 * 60 * 1000),
-            assignmentsCompleted: 6,
-            totalAssignments: 6,
-            averageGrade: 89
+    } else {
+      // Coordinators see all courses
+      coursesQuery = db.query.courses.findMany({
+        with: {
+          enrollments: {
+            with: {
+              user: true
+            }
           },
-          {
-            id: "student-10",
-            name: "Andrés Luna",
-            email: "andres.luna@email.com",
-            progress: 73,
-            lastActive: new Date(baseDate.getTime() - 6 * 60 * 60 * 1000),
-            assignmentsCompleted: 4,
-            totalAssignments: 6,
-            averageGrade: 78
+          coursework: {
+            with: {
+              submissions: {
+                with: {
+                  student: true
+                }
+              }
+            }
           }
-        ],
-        recentActivity: [
-          {
-            studentId: "student-9",
-            studentName: "Carmen Vega",
-            action: "Submitted Normalization Exercise",
-            timestamp: new Date(baseDate.getTime() - 4 * 60 * 60 * 1000)
-          }
-        ],
-        stats: {
-          totalStudents: 25,
-          activeStudents: 22,
-          averageProgress: 79,
-          pendingSubmissions: 8
         }
-      },
-      {
-        id: "course-4",
-        googleClassroomId: "gc-course-4",
-        name: "Python Programming",
-        description: "Introduction to Python programming and data structures",
-        teacherId: "teacher-3",
-        createdAt: new Date(baseDate.getTime() - 45 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(baseDate.getTime() - 5 * 60 * 60 * 1000),
-        students: [],
-        assignments: [],
-        studentInfo: [
-          {
-            id: "student-11",
-            name: "Valeria Herrera",
-            email: "valeria.herrera@email.com",
-            progress: 85,
-            lastActive: new Date(baseDate.getTime() - 1 * 60 * 60 * 1000),
-            assignmentsCompleted: 7,
-            totalAssignments: 8,
-            averageGrade: 87
-          }
-        ],
-        recentActivity: [
-          {
-            studentId: "student-11",
-            studentName: "Valeria Herrera",
-            action: "Submitted Data Structures Quiz",
-            timestamp: new Date(baseDate.getTime() - 2 * 60 * 60 * 1000)
-          }
-        ],
-        stats: {
-          totalStudents: 20,
-          activeStudents: 18,
-          averageProgress: 83,
-          pendingSubmissions: 5
-        }
-      }
-    ];
+      });
+    }
 
-    return [...teacherClasses, ...additionalClasses];
+    const coursesData = await coursesQuery;
+
+    // Transform to ClassWithDetails format
+    const classesWithDetails: ClassWithDetails[] = await Promise.all(
+      coursesData.map(async (course: any) => {
+        const studentEnrollments = course.enrollments?.filter((e: any) => e.roleInCourse === "STUDENT") || [];
+        const students = studentEnrollments.map((e: any) => e.user);
+        
+        // Get student progress data
+        const progressData = await db.query.studentProgress.findMany({
+          where: eq(studentProgress.courseId, course.id)
+        });
+        
+        // Calculate student info
+        const studentInfo: StudentInfo[] = await Promise.all(
+          students.map(async (student: any) => {
+            const progress = progressData.find(p => p.studentId === student.id);
+            const studentSubmissions = course.coursework?.flatMap((cw: any) => 
+              cw.submissions?.filter((s: any) => s.studentId === student.id) || []
+            ) || [];
+            
+            const totalAssignments = course.coursework?.length || 0;
+            const completedAssignments = studentSubmissions.filter((s: any) => s.state === "TURNED_IN").length;
+            const gradedSubmissions = studentSubmissions.filter((s: any) => s.assignedGrade !== null);
+            const averageGrade = gradedSubmissions.length > 0 
+              ? Math.round(gradedSubmissions.reduce((acc: number, s: any) => acc + (s.assignedGrade || 0), 0) / gradedSubmissions.length)
+              : 0;
+
+            return {
+              id: student.id,
+              name: student.name,
+              email: student.email,
+              progress: progress?.completionRate || Math.round((completedAssignments / Math.max(totalAssignments, 1)) * 100),
+              lastActive: progress?.lastActivity || new Date(),
+              assignmentsCompleted: completedAssignments,
+              totalAssignments,
+              averageGrade
+            };
+          })
+        );
+
+        // Get recent activity (latest submissions)
+        const recentSubmissions = course.coursework?.flatMap((cw: any) =>
+          cw.submissions?.map((s: any) => ({
+            studentId: s.studentId,
+            studentName: s.student.name,
+            action: `Submitted ${cw.title}`,
+            timestamp: s.turnedInAt || s.updatedAt
+          })) || []
+        ) || [];
+        
+        const recentActivity = recentSubmissions
+          .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+          .slice(0, 10);
+
+        // Calculate stats
+        const totalStudents = students.length;
+        const activeStudents = studentInfo.filter(s => 
+          new Date().getTime() - new Date(s.lastActive).getTime() < 7 * 24 * 60 * 60 * 1000
+        ).length;
+        const averageProgress = totalStudents > 0 
+          ? Math.round(studentInfo.reduce((acc, s) => acc + s.progress, 0) / totalStudents)
+          : 0;
+        const pendingSubmissions = course.coursework?.flatMap((cw: any) => 
+          cw.submissions?.filter((s: any) => s.state === "TURNED_IN") || []
+        ).length || 0;
+
+        return {
+          id: course.id,
+          googleClassroomId: course.externalId,
+          name: course.name,
+          description: course.description || "",
+          teacherId: course.ownerGoogleId || "",
+          createdAt: course.createdAt,
+          updatedAt: course.updatedAt,
+          students: [],
+          assignments: [],
+          studentInfo,
+          recentActivity,
+          stats: {
+            totalStudents,
+            activeStudents,
+            averageProgress,
+            pendingSubmissions
+          }
+        };
+      })
+    );
+
+    return classesWithDetails;
+  } catch (error) {
+    console.error("Error fetching class data:", error);
+    throw error;
   }
-
-  return teacherClasses;
 }

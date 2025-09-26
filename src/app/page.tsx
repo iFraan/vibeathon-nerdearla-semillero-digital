@@ -5,6 +5,7 @@ import {
 	Bell,
 	BookOpen,
 	GraduationCap,
+	Sprout,
 	TrendingUp,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -88,8 +89,8 @@ export default function Home() {
 			<nav className="fixed w-full z-20 top-0 left-0 bg-background/90 backdrop-blur-md shadow-sm border-b border-border">
 				<div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
 					<div className="flex items-center gap-3">
-						<div className="h-10 w-10 rounded-[var(--radius)] bg-primary flex items-center justify-center shadow font-bold text-lg text-primary-foreground select-none border-2 border-border">
-							SD
+						<div className="h-10 w-10 rounded bg-primary flex items-center justify-center">
+							<Sprout className="text-primary-foreground w-6 h-6" />
 						</div>
 						<div>
 							<span className="font-extrabold text-xl text-foreground tracking-tight leading-tight block">
@@ -117,8 +118,8 @@ export default function Home() {
 			{/* Hero */}
 			<section className="relative flex flex-col items-center justify-center flex-1 pt-32 pb-12 px-4 bg-background transition-colors">
 				<div className="flex flex-col items-center gap-4">
-					<div className="h-16 w-16 rounded-[var(--radius-xl)] bg-primary flex items-center justify-center shadow-lg font-bold text-3xl text-primary-foreground border-4 border-border mb-2 animate-in fade-in zoom-in">
-						SD
+					<div className="h-16 w-16 rounded bg-primary flex items-center justify-center">
+						<Sprout className="text-primary-foreground w-8 h-8" />
 					</div>
 					<h1 className="text-4xl md:text-6xl font-extrabold text-foreground text-center drop-shadow mb-4 animate-in fade-in slide-in-from-top-8">
 						Potenciá tu futuro digital

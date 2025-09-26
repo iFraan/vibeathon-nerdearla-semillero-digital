@@ -37,9 +37,9 @@
   --sidebar-accent-foreground: #000000;
   --sidebar-border: #d4d4d4;
   --sidebar-ring: #ffc0cb;
-  --font-sans: Poppins, sans-serif;
+  --font-sans: IBM Plex Sans, Poppins, sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-mono: Roboto Mono, monospace;
+  --font-mono: IBM Plex Mono, monospace;
   --radius: 0.5rem;
   --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -86,9 +86,9 @@
   --sidebar-accent-foreground: #000000;
   --sidebar-border: #444444;
   --sidebar-ring: #ff99cc;
-  --font-sans: Poppins, sans-serif;
+  --font-sans: IBM Plex Sans, Poppins, sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-mono: Roboto Mono, monospace;
+  --font-mono: IBM Plex Mono, monospace;
   --radius: 0.5rem;
   --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);

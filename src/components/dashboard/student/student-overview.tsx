@@ -73,7 +73,7 @@ interface StudentOverviewProps {
 const upcomingColumns: ColumnDef<any>[] = [
 	{
 		accessorKey: "title",
-		header: "Assignment",
+		header: "Tarea",
 		cell: ({ row }) => {
 			const assignment = row.original;
 			return (
@@ -88,7 +88,7 @@ const upcomingColumns: ColumnDef<any>[] = [
 	},
 	{
 		accessorKey: "dueDate",
-		header: "Due Date",
+		header: "Fecha de Vencimiento",
 		cell: ({ row }) => {
 			const dueDate = row.original.dueDate;
 			const isOverdue = new Date() > dueDate;
@@ -104,22 +104,22 @@ const upcomingColumns: ColumnDef<any>[] = [
 	},
 	{
 		accessorKey: "isSubmitted",
-		header: "Status",
+		header: "Estado",
 		cell: ({ row }) => {
 			const { isSubmitted, isLate } = row.original;
 			if (isSubmitted) {
 				return (
 					<Badge variant={isLate ? "destructive" : "default"}>
-						{isLate ? "Submitted Late" : "Submitted"}
+						{isLate ? "Entregado Tarde" : "Entregado"}
 					</Badge>
 				);
 			}
-			return <Badge variant="secondary">Pending</Badge>;
+			return <Badge variant="secondary">Pendiente</Badge>;
 		},
 	},
 	{
 		id: "actions",
-		header: "Actions",
+		header: "Acciones",
 		cell: ({ row }) => {
 			const assignment = row.original;
 			return (
@@ -127,7 +127,7 @@ const upcomingColumns: ColumnDef<any>[] = [
 					size="sm"
 					variant={assignment.isSubmitted ? "outline" : "default"}
 				>
-					{assignment.isSubmitted ? "View" : "Submit"}
+					{assignment.isSubmitted ? "Ver" : "Entregar"}
 				</Button>
 			);
 		},
@@ -137,7 +137,7 @@ const upcomingColumns: ColumnDef<any>[] = [
 const activityColumns: ColumnDef<any>[] = [
 	{
 		accessorKey: "type",
-		header: "Type",
+		header: "Tipo",
 		cell: ({ row }) => {
 			const type = row.original.type;
 			const icons = {
@@ -156,7 +156,7 @@ const activityColumns: ColumnDef<any>[] = [
 	},
 	{
 		accessorKey: "title",
-		header: "Activity",
+		header: "Actividad",
 		cell: ({ row }) => {
 			const activity = row.original;
 			return (
@@ -171,7 +171,7 @@ const activityColumns: ColumnDef<any>[] = [
 	},
 	{
 		accessorKey: "date",
-		header: "Date",
+		header: "Fecha",
 		cell: ({ row }) => {
 			const date = row.original.date;
 			return <span>{formatDistanceToNow(date, { addSuffix: true })}</span>;
@@ -179,7 +179,7 @@ const activityColumns: ColumnDef<any>[] = [
 	},
 	{
 		accessorKey: "grade",
-		header: "Grade",
+		header: "Nota",
 		cell: ({ row }) => {
 			const grade = row.original.grade;
 			if (grade === undefined)

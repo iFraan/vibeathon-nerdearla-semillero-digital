@@ -79,204 +79,204 @@ interface CoordinatorOverviewProps {
 }
 
 const courseColumns: ColumnDef<any>[] = [
-  {
-    accessorKey: "courseName",
-    header: "Course",
-    cell: ({ row }) => {
-      const course = row.original;
-      return (
-        <div className="flex flex-col">
-          <span className="font-medium">{course.courseName}</span>
-          <span className="text-sm text-muted-foreground">by {course.teacherName}</span>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "totalStudents",
-    header: "Students",
-    cell: ({ row }) => {
-      const course = row.original;
-      return (
-        <div className="flex flex-col">
-          <span>{course.totalStudents} enrolled</span>
-          <span className="text-sm text-muted-foreground">
-            {course.activeStudents} active ({Math.round((course.activeStudents / course.totalStudents) * 100)}%)
-          </span>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "averageCompletion",
-    header: "Completion",
-    cell: ({ row }) => {
-      const completion = row.original.averageCompletion;
-      return (
-        <div className="flex items-center gap-2">
-          <span>{Math.round(completion)}%</span>
-          <div className="w-12 bg-gray-200 rounded-full h-2">
-            <div 
-              className={`h-2 rounded-full ${completion >= 80 ? 'bg-green-500' : completion >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
-              style={{ width: `${completion}%` }}
-            />
-          </div>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "studentsAtRisk",
-    header: "At Risk",
-    cell: ({ row }) => {
-      const count = row.original.studentsAtRisk;
-      return count > 0 ? (
-        <Badge variant="destructive">{count} students</Badge>
-      ) : (
-        <Badge variant="default">None</Badge>
-      );
-    },
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => (
-      <div className="flex gap-2">
-        <Button size="sm" variant="outline">
-          <Eye className="h-4 w-4 mr-1" />
-          View
-        </Button>
-        <Button size="sm" variant="outline">
-          <FileSpreadsheet className="h-4 w-4 mr-1" />
-          Export
-        </Button>
-      </div>
-    ),
-  },
-];
+   {
+     accessorKey: "courseName",
+     header: "Curso",
+     cell: ({ row }) => {
+       const course = row.original;
+       return (
+         <div className="flex flex-col">
+           <span className="font-medium">{course.courseName}</span>
+           <span className="text-sm text-muted-foreground">por {course.teacherName}</span>
+         </div>
+       );
+     },
+   },
+   {
+     accessorKey: "totalStudents",
+     header: "Estudiantes",
+     cell: ({ row }) => {
+       const course = row.original;
+       return (
+         <div className="flex flex-col">
+           <span>{course.totalStudents} inscritos</span>
+           <span className="text-sm text-muted-foreground">
+             {course.activeStudents} activos ({Math.round((course.activeStudents / course.totalStudents) * 100)}%)
+           </span>
+         </div>
+       );
+     },
+   },
+   {
+     accessorKey: "averageCompletion",
+     header: "Finalización",
+     cell: ({ row }) => {
+       const completion = row.original.averageCompletion;
+       return (
+         <div className="flex items-center gap-2">
+           <span>{Math.round(completion)}%</span>
+           <div className="w-12 bg-gray-200 rounded-full h-2">
+             <div
+               className={`h-2 rounded-full ${completion >= 80 ? 'bg-green-500' : completion >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+               style={{ width: `${completion}%` }}
+             />
+           </div>
+         </div>
+       );
+     },
+   },
+   {
+     accessorKey: "studentsAtRisk",
+     header: "En Riesgo",
+     cell: ({ row }) => {
+       const count = row.original.studentsAtRisk;
+       return count > 0 ? (
+         <Badge variant="destructive">{count} estudiantes</Badge>
+       ) : (
+         <Badge variant="default">Ninguno</Badge>
+       );
+     },
+   },
+   {
+     id: "actions",
+     header: "Acciones",
+     cell: ({ row }) => (
+       <div className="flex gap-2">
+         <Button size="sm" variant="outline">
+           <Eye className="h-4 w-4 mr-1" />
+           Ver
+         </Button>
+         <Button size="sm" variant="outline">
+           <FileSpreadsheet className="h-4 w-4 mr-1" />
+           Exportar
+         </Button>
+       </div>
+     ),
+   },
+ ];
 
 const teacherColumns: ColumnDef<any>[] = [
-  {
-    accessorKey: "teacherName",
-    header: "Teacher",
-  },
-  {
-    accessorKey: "courses",
-    header: "Courses",
-    cell: ({ row }) => (
-      <div className="flex flex-col">
-        <span>{row.original.courses} courses</span>
-        <span className="text-sm text-muted-foreground">
-          {row.original.totalStudents} total students
-        </span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "averageEngagement",
-    header: "Engagement",
-    cell: ({ row }) => {
-      const engagement = row.original.averageEngagement;
-      return (
-        <div className="flex items-center gap-2">
-          <span>{Math.round(engagement)}%</span>
-          <Badge variant={engagement >= 80 ? "default" : engagement >= 60 ? "secondary" : "destructive"}>
-            {engagement >= 80 ? "High" : engagement >= 60 ? "Medium" : "Low"}
-          </Badge>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "responseTime",
-    header: "Response Time",
-    cell: ({ row }) => {
-      const hours = row.original.responseTime;
-      return (
-        <span className={hours <= 24 ? "text-green-600" : hours <= 48 ? "text-yellow-600" : "text-red-600"}>
-          {hours}h avg
-        </span>
-      );
-    },
-  },
-];
+   {
+     accessorKey: "teacherName",
+     header: "Profesor",
+   },
+   {
+     accessorKey: "courses",
+     header: "Cursos",
+     cell: ({ row }) => (
+       <div className="flex flex-col">
+         <span>{row.original.courses} cursos</span>
+         <span className="text-sm text-muted-foreground">
+           {row.original.totalStudents} estudiantes totales
+         </span>
+       </div>
+     ),
+   },
+   {
+     accessorKey: "averageEngagement",
+     header: "Participación",
+     cell: ({ row }) => {
+       const engagement = row.original.averageEngagement;
+       return (
+         <div className="flex items-center gap-2">
+           <span>{Math.round(engagement)}%</span>
+           <Badge variant={engagement >= 80 ? "default" : engagement >= 60 ? "secondary" : "destructive"}>
+             {engagement >= 80 ? "Alto" : engagement >= 60 ? "Medio" : "Bajo"}
+           </Badge>
+         </div>
+       );
+     },
+   },
+   {
+     accessorKey: "responseTime",
+     header: "Tiempo de Respuesta",
+     cell: ({ row }) => {
+       const hours = row.original.responseTime;
+       return (
+         <span className={hours <= 24 ? "text-green-600" : hours <= 48 ? "text-yellow-600" : "text-red-600"}>
+           {hours}h promedio
+         </span>
+       );
+     },
+   },
+ ];
 
 const riskStudentsColumns: ColumnDef<any>[] = [
-  {
-    accessorKey: "studentName",
-    header: "Student",
-    cell: ({ row }) => {
-      const student = row.original;
-      return (
-        <div className="flex flex-col">
-          <span className="font-medium">{student.studentName}</span>
-          <span className="text-sm text-muted-foreground">{student.email}</span>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "courses",
-    header: "Courses",
-    cell: ({ row }) => {
-      const courses = row.original.courses;
-      return (
-        <div className="flex flex-wrap gap-1">
-          {courses.slice(0, 2).map((course: string, index: number) => (
-            <Badge key={index} variant="outline" className="text-xs">
-              {course}
-            </Badge>
-          ))}
-          {courses.length > 2 && (
-            <Badge variant="outline" className="text-xs">
-              +{courses.length - 2} more
-            </Badge>
-          )}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "overallCompletion",
-    header: "Progress",
-    cell: ({ row }) => {
-      const completion = row.original.overallCompletion;
-      const grade = row.original.averageGrade;
-      return (
-        <div className="flex flex-col">
-          <span>{Math.round(completion)}% complete</span>
-          {grade && (
-            <span className="text-sm text-muted-foreground">
-              Avg: {Math.round(grade)}%
-            </span>
-          )}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "lastActivity",
-    header: "Last Active",
-    cell: ({ row }) => {
-      const lastActivity = row.original.lastActivity;
-      const daysSinceActive = Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
-      return (
-        <span className={daysSinceActive > 7 ? "text-red-600" : daysSinceActive > 3 ? "text-yellow-600" : "text-green-600"}>
-          {formatDistanceToNow(lastActivity, { addSuffix: true })}
-        </span>
-      );
-    },
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => (
-      <Button size="sm" variant="outline">
-        Intervene
-      </Button>
-    ),
-  },
-];
+   {
+     accessorKey: "studentName",
+     header: "Estudiante",
+     cell: ({ row }) => {
+       const student = row.original;
+       return (
+         <div className="flex flex-col">
+           <span className="font-medium">{student.studentName}</span>
+           <span className="text-sm text-muted-foreground">{student.email}</span>
+         </div>
+       );
+     },
+   },
+   {
+     accessorKey: "courses",
+     header: "Cursos",
+     cell: ({ row }) => {
+       const courses = row.original.courses;
+       return (
+         <div className="flex flex-wrap gap-1">
+           {courses.slice(0, 2).map((course: string, index: number) => (
+             <Badge key={index} variant="outline" className="text-xs">
+               {course}
+             </Badge>
+           ))}
+           {courses.length > 2 && (
+             <Badge variant="outline" className="text-xs">
+               +{courses.length - 2} más
+             </Badge>
+           )}
+         </div>
+       );
+     },
+   },
+   {
+     accessorKey: "overallCompletion",
+     header: "Progreso",
+     cell: ({ row }) => {
+       const completion = row.original.overallCompletion;
+       const grade = row.original.averageGrade;
+       return (
+         <div className="flex flex-col">
+           <span>{Math.round(completion)}% completado</span>
+           {grade && (
+             <span className="text-sm text-muted-foreground">
+               Promedio: {Math.round(grade)}%
+             </span>
+           )}
+         </div>
+       );
+     },
+   },
+   {
+     accessorKey: "lastActivity",
+     header: "Última Actividad",
+     cell: ({ row }) => {
+       const lastActivity = row.original.lastActivity;
+       const daysSinceActive = Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+       return (
+         <span className={daysSinceActive > 7 ? "text-red-600" : daysSinceActive > 3 ? "text-yellow-600" : "text-green-600"}>
+           {formatDistanceToNow(lastActivity, { addSuffix: true })}
+         </span>
+       );
+     },
+   },
+   {
+     id: "actions",
+     header: "Acciones",
+     cell: ({ row }) => (
+       <Button size="sm" variant="outline">
+         Intervenir
+       </Button>
+     ),
+   },
+ ];
 
 export function CoordinatorOverview({ coordinatorId, data, loading }: CoordinatorOverviewProps) {
   if (loading) {
@@ -410,19 +410,19 @@ export function CoordinatorOverview({ coordinatorId, data, loading }: Coordinato
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-sm">Course Completion</span>
+                  <span className="text-sm">Finalización de Cursos</span>
                   <span className="text-sm font-medium">{Math.round(systemMetrics.averageCompletion)}%</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">User Engagement</span>
+                  <span className="text-sm">Participación de Usuarios</span>
                   <span className="text-sm font-medium">{Math.round((systemMetrics.activeUsers / systemMetrics.totalStudents) * 100)}%</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Teachers Active</span>
+                  <span className="text-sm">Profesores Activos</span>
                   <span className="text-sm font-medium">{systemMetrics.totalTeachers}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Courses Running</span>
+                  <span className="text-sm">Cursos en Marcha</span>
                   <span className="text-sm font-medium">{systemMetrics.totalCourses}</span>
                 </div>
               </div>
@@ -454,13 +454,13 @@ export function CoordinatorOverview({ coordinatorId, data, loading }: Coordinato
       <Tabs defaultValue="courses" className="space-y-4">
         <TabsList>
           <TabsTrigger value="courses">
-            Course Analysis ({courseMetrics.length})
+            Análisis de Cursos ({courseMetrics.length})
           </TabsTrigger>
           <TabsTrigger value="teachers">
-            Teacher Performance ({teacherPerformance.length})
+            Rendimiento de Profesores ({teacherPerformance.length})
           </TabsTrigger>
           <TabsTrigger value="risk">
-            Students at Risk ({riskAnalysis.length})
+            Estudiantes en Riesgo ({riskAnalysis.length})
           </TabsTrigger>
         </TabsList>
 
@@ -469,10 +469,10 @@ export function CoordinatorOverview({ coordinatorId, data, loading }: Coordinato
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
-                Course Performance Analysis
+                Análisis de Rendimiento de Cursos
               </CardTitle>
               <CardDescription>
-                Detailed metrics for all active courses
+                Métricas detalladas para todos los cursos activos
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -491,10 +491,10 @@ export function CoordinatorOverview({ coordinatorId, data, loading }: Coordinato
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <UserCheck className="h-5 w-5" />
-                Teacher Performance
+                Rendimiento de Profesores
               </CardTitle>
               <CardDescription>
-                Teaching effectiveness and student engagement metrics
+                Métricas de efectividad docente y participación estudiantil
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -513,10 +513,10 @@ export function CoordinatorOverview({ coordinatorId, data, loading }: Coordinato
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5" />
-                Students Requiring Intervention
+                Estudiantes Requiriendo Intervención
               </CardTitle>
               <CardDescription>
-                Students who may need additional support or intervention
+                Estudiantes que pueden necesitar apoyo adicional o intervención
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -530,8 +530,8 @@ export function CoordinatorOverview({ coordinatorId, data, loading }: Coordinato
               ) : (
                 <EmptyState
                   icon={Award}
-                  title="All students on track!"
-                  description="No students currently flagged as needing intervention."
+                  title="¡Todos los estudiantes en camino!"
+                  description="No hay estudiantes marcados como necesitando intervención actualmente."
                 />
               )}
             </CardContent>

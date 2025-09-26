@@ -173,22 +173,6 @@ export function DashboardLayout({
 									<LogOut className="mr-2 h-4 w-4" />
 									<span>Cerrar sesión</span>
 								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem
-									onClick={handleSync}
-									disabled={syncing}
-									className={syncing ? "opacity-50 pointer-events-none" : ""}
-								>
-									<RefreshCw
-										className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`}
-									/>
-									<span>{syncing ? "Sincronizando..." : "Sincronizar datos"}</span>
-								</DropdownMenuItem>
-								{syncError && (
-									<div className="px-2 pb-2 text-red-500 text-xs">
-										{syncError}
-									</div>
-								)}
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</div>

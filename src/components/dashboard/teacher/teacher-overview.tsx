@@ -72,122 +72,122 @@ interface TeacherOverviewProps {
 }
 
 const submissionsColumns: ColumnDef<any>[] = [
-  {
-    accessorKey: "studentName",
-    header: "Student",
-    cell: ({ row }) => {
-      const submission = row.original;
-      return (
-        <div className="flex flex-col">
-          <span className="font-medium">{submission.studentName}</span>
-          <span className="text-sm text-muted-foreground">{submission.studentEmail}</span>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "assignmentTitle",
-    header: "Assignment",
-    cell: ({ row }) => {
-      const submission = row.original;
-      return (
-        <div className="flex flex-col">
-          <span className="font-medium">{submission.assignmentTitle}</span>
-          <span className="text-sm text-muted-foreground">{submission.courseName}</span>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "submittedAt",
-    header: "Submitted",
-    cell: ({ row }) => {
-      const { submittedAt, isLate } = row.original;
-      return (
-        <div className="flex items-center gap-2">
-          {isLate && <AlertTriangle className="h-4 w-4 text-orange-500" />}
-          <span className={isLate ? "text-orange-600" : ""}>
-            {formatDistanceToNow(submittedAt, { addSuffix: true })}
-          </span>
-        </div>
-      );
-    },
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => (
-      <div className="flex gap-2">
-        <Button size="sm" variant="outline">
-          <Eye className="h-4 w-4 mr-1" />
-          Review
-        </Button>
-      </div>
-    ),
-  },
-];
+   {
+     accessorKey: "studentName",
+     header: "Estudiante",
+     cell: ({ row }) => {
+       const submission = row.original;
+       return (
+         <div className="flex flex-col">
+           <span className="font-medium">{submission.studentName}</span>
+           <span className="text-sm text-muted-foreground">{submission.studentEmail}</span>
+         </div>
+       );
+     },
+   },
+   {
+     accessorKey: "assignmentTitle",
+     header: "Tarea",
+     cell: ({ row }) => {
+       const submission = row.original;
+       return (
+         <div className="flex flex-col">
+           <span className="font-medium">{submission.assignmentTitle}</span>
+           <span className="text-sm text-muted-foreground">{submission.courseName}</span>
+         </div>
+       );
+     },
+   },
+   {
+     accessorKey: "submittedAt",
+     header: "Entregado",
+     cell: ({ row }) => {
+       const { submittedAt, isLate } = row.original;
+       return (
+         <div className="flex items-center gap-2">
+           {isLate && <AlertTriangle className="h-4 w-4 text-orange-500" />}
+           <span className={isLate ? "text-orange-600" : ""}>
+             {formatDistanceToNow(submittedAt, { addSuffix: true })}
+           </span>
+         </div>
+       );
+     },
+   },
+   {
+     id: "actions",
+     header: "Acciones",
+     cell: ({ row }) => (
+       <div className="flex gap-2">
+         <Button size="sm" variant="outline">
+           <Eye className="h-4 w-4 mr-1" />
+           Revisar
+         </Button>
+       </div>
+     ),
+   },
+ ];
 
 const riskStudentsColumns: ColumnDef<any>[] = [
-  {
-    accessorKey: "name",
-    header: "Student",
-    cell: ({ row }) => {
-      const student = row.original;
-      return (
-        <div className="flex flex-col">
-          <span className="font-medium">{student.name}</span>
-          <span className="text-sm text-muted-foreground">{student.email}</span>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "courseName",
-    header: "Course",
-  },
-  {
-    accessorKey: "riskLevel",
-    header: "Risk Level",
-    cell: ({ row }) => {
-      const level = row.original.riskLevel;
-      return (
-        <Badge variant={level === "high" ? "destructive" : "secondary"}>
-          {level} risk
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "completionRate",
-    header: "Completion",
-    cell: ({ row }) => {
-      const rate = row.original.completionRate;
-      return (
-        <div className="flex items-center gap-2">
-          <span>{Math.round(rate)}%</span>
-          <div className="w-12 bg-gray-200 rounded-full h-2">
-            <div 
-              className={`h-2 rounded-full ${rate >= 75 ? 'bg-green-500' : rate >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
-              style={{ width: `${rate}%` }}
-            />
-          </div>
-        </div>
-      );
-    },
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => (
-      <div className="flex gap-2">
-        <Button size="sm" variant="outline">
-          <MessageSquare className="h-4 w-4 mr-1" />
-          Contact
-        </Button>
-      </div>
-    ),
-  },
-];
+   {
+     accessorKey: "name",
+     header: "Estudiante",
+     cell: ({ row }) => {
+       const student = row.original;
+       return (
+         <div className="flex flex-col">
+           <span className="font-medium">{student.name}</span>
+           <span className="text-sm text-muted-foreground">{student.email}</span>
+         </div>
+       );
+     },
+   },
+   {
+     accessorKey: "courseName",
+     header: "Curso",
+   },
+   {
+     accessorKey: "riskLevel",
+     header: "Nivel de Riesgo",
+     cell: ({ row }) => {
+       const level = row.original.riskLevel;
+       return (
+         <Badge variant={level === "high" ? "destructive" : "secondary"}>
+           {level} riesgo
+         </Badge>
+       );
+     },
+   },
+   {
+     accessorKey: "completionRate",
+     header: "Finalización",
+     cell: ({ row }) => {
+       const rate = row.original.completionRate;
+       return (
+         <div className="flex items-center gap-2">
+           <span>{Math.round(rate)}%</span>
+           <div className="w-12 bg-gray-200 rounded-full h-2">
+             <div
+               className={`h-2 rounded-full ${rate >= 75 ? 'bg-green-500' : rate >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
+               style={{ width: `${rate}%` }}
+             />
+           </div>
+         </div>
+       );
+     },
+   },
+   {
+     id: "actions",
+     header: "Acciones",
+     cell: ({ row }) => (
+       <div className="flex gap-2">
+         <Button size="sm" variant="outline">
+           <MessageSquare className="h-4 w-4 mr-1" />
+           Contactar
+         </Button>
+       </div>
+     ),
+   },
+ ];
 
 export function TeacherOverview({ teacherId, data, loading }: TeacherOverviewProps) {
   if (loading) {
@@ -297,10 +297,10 @@ export function TeacherOverview({ teacherId, data, loading }: TeacherOverviewPro
                     <div className="flex-1">
                       <h4 className="font-medium">{course.courseName}</h4>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{course.totalStudents} students</span>
-                        <span>{course.activeStudents} active</span>
+                        <span>{course.totalStudents} estudiantes</span>
+                        <span>{course.activeStudents} activos</span>
                         {course.studentsAtRisk > 0 && (
-                          <span className="text-red-600">{course.studentsAtRisk} at risk</span>
+                          <span className="text-red-600">{course.studentsAtRisk} en riesgo</span>
                         )}
                       </div>
                     </div>
@@ -330,13 +330,13 @@ export function TeacherOverview({ teacherId, data, loading }: TeacherOverviewPro
       <Tabs defaultValue="submissions" className="space-y-4">
         <TabsList>
           <TabsTrigger value="submissions">
-            Pending Submissions ({pendingSubmissions.length})
+            Entregas Pendientes ({pendingSubmissions.length})
           </TabsTrigger>
           <TabsTrigger value="students">
-            Students at Risk ({studentsAtRisk.length})
+            Estudiantes en Riesgo ({studentsAtRisk.length})
           </TabsTrigger>
           <TabsTrigger value="activity">
-            Recent Activity
+            Actividad Reciente
           </TabsTrigger>
         </TabsList>
 
@@ -345,10 +345,10 @@ export function TeacherOverview({ teacherId, data, loading }: TeacherOverviewPro
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Pending Submissions
+                Entregas Pendientes
               </CardTitle>
               <CardDescription>
-                Student submissions waiting for your review
+                Entregas de estudiantes esperando revisión
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -362,8 +362,8 @@ export function TeacherOverview({ teacherId, data, loading }: TeacherOverviewPro
               ) : (
                 <EmptyState
                   icon={CheckCircle}
-                  title="All caught up!"
-                  description="No submissions waiting for review."
+                  title="¡Todo al día!"
+                  description="No hay entregas esperando revisión."
                 />
               )}
             </CardContent>
@@ -375,10 +375,10 @@ export function TeacherOverview({ teacherId, data, loading }: TeacherOverviewPro
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5" />
-                Students Needing Attention
+                Estudiantes Necesitando Atención
               </CardTitle>
               <CardDescription>
-                Students who may be struggling or falling behind
+                Estudiantes que pueden estar luchando o atrasados
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -392,8 +392,8 @@ export function TeacherOverview({ teacherId, data, loading }: TeacherOverviewPro
               ) : (
                 <EmptyState
                   icon={CheckCircle}
-                  title="All students on track!"
-                  description="No students currently flagged as at risk."
+                  title="¡Todos los estudiantes en camino!"
+                  description="No hay estudiantes marcados como en riesgo actualmente."
                 />
               )}
             </CardContent>
@@ -403,8 +403,8 @@ export function TeacherOverview({ teacherId, data, loading }: TeacherOverviewPro
         <TabsContent value="activity" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Latest interactions and submissions</CardDescription>
+              <CardTitle>Actividad Reciente</CardTitle>
+              <CardDescription>Últimas interacciones y entregas</CardDescription>
             </CardHeader>
             <CardContent>
               {recentActivity.length > 0 ? (
@@ -432,8 +432,8 @@ export function TeacherOverview({ teacherId, data, loading }: TeacherOverviewPro
               ) : (
                 <EmptyState
                   icon={Clock}
-                  title="No recent activity"
-                  description="Student activity will appear here."
+                  title="Sin actividad reciente"
+                  description="La actividad de estudiantes aparecerá aquí."
                 />
               )}
             </CardContent>

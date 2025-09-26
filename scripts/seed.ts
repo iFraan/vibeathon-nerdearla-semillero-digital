@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { 
   users, 
+  accounts,
   courses, 
   enrollments, 
   coursework, 
@@ -117,7 +118,7 @@ async function seed() {
   
   const client = postgres(connectionString);
   const db = drizzle(client, { 
-    schema: { users, courses, enrollments, coursework, topics, submissions, studentProgress }
+    schema: { users, accounts, courses, enrollments, coursework, topics, submissions, studentProgress }
   });
 
   try {
@@ -127,6 +128,7 @@ async function seed() {
     await db.delete(coursework);
     await db.delete(topics);
     await db.delete(enrollments);
+    await db.delete(accounts);
     await db.delete(courses);
     await db.delete(users);
 
@@ -176,6 +178,19 @@ async function seed() {
     }));
 
     await db.insert(users).values([demoUser, ...studentsData, ...teachersData]);
+
+    console.log('🔐 Creating demo credential account...');
+    
+    // Create credential account for demo user
+    await db.insert(accounts).values({
+      id: randomUUID(),
+      accountId: 'demo-user-id',
+      providerId: 'credential',
+      userId: 'demo-user-id',
+      password: 'demo123', // This can be any value since autoSignIn is enabled
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
     console.log('📚 Creating courses...');
 

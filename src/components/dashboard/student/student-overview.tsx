@@ -334,50 +334,48 @@ export function StudentOverview({
 			{/* Course Progress Chart */}
 			{courseProgress.length > 0 ? (
 				<div className="grid gap-6 md:grid-cols-2">
-					<div className="bg-background rounded-xl border border-border shadow p-4 flex flex-col justify-between">
+					<div className="bg-background rounded-xl border border-border shadow p-0 flex flex-col justify-between">
 						<ProgressChart
 							data={progressChartData}
 							title="Progreso por Curso"
 							description="Porcentaje completado por curso"
 						/>
 					</div>
-					<div className="bg-background rounded-xl border border-border shadow p-4 flex flex-col justify-between">
-						<CardHeader>
-							<CardTitle className="text-foreground">
+					<div className="bg-background rounded-xl border border-border shadow p-4 flex flex-col">
+						<div className="mb-6">
+							<h3 className="text-lg font-semibold text-foreground mb-1">
 								Estado de Cursos
-							</CardTitle>
-							<CardDescription className="text-muted-foreground">
+							</h3>
+							<p className="text-sm text-muted-foreground">
 								Riesgo y avance de cada curso
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-4">
-								{courseProgress.map((course) => (
-									<div
-										key={course.courseId}
-										className="flex items-center justify-between p-3 border rounded-lg bg-muted/40"
-									>
-										<div className="flex-1">
-											<h4 className="font-medium text-foreground">
-												{course.courseName}
-											</h4>
-											<p className="text-sm text-muted-foreground">
-												{course.completedAssignments} de{" "}
-												{course.totalAssignments} tareas completadas
-											</p>
-										</div>
-										<div className="flex items-center gap-2">
-											<Badge variant={getRiskColor(course.riskLevel) as any}>
-												{course.riskLevel} riesgo
-											</Badge>
-											<span className="text-sm font-medium">
-												{Math.round(course.completionRate)}%
-											</span>
-										</div>
+							</p>
+						</div>
+						<div className="space-y-4 flex-1">
+							{courseProgress.map((course) => (
+								<div
+									key={course.courseId}
+									className="flex items-center justify-between p-3 border rounded-lg bg-muted/40"
+								>
+									<div className="flex-1">
+										<h4 className="font-medium text-foreground">
+											{course.courseName}
+										</h4>
+										<p className="text-sm text-muted-foreground">
+											{course.completedAssignments} de{" "}
+											{course.totalAssignments} tareas completadas
+										</p>
 									</div>
-								))}
-							</div>
-						</CardContent>
+									<div className="flex items-center gap-2">
+										<Badge variant={getRiskColor(course.riskLevel) as any}>
+											{course.riskLevel} riesgo
+										</Badge>
+										<span className="text-sm font-medium">
+											{Math.round(course.completionRate)}%
+										</span>
+									</div>
+								</div>
+							))}
+						</div>
 					</div>
 				</div>
 			) : (

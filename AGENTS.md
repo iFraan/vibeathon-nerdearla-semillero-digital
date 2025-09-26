@@ -98,6 +98,13 @@ A complementary web application for Google Classroom that helps Semillero Digita
 - GDPR compliance considerations
 - Regular security audits
 
+### 🌱 Database Seeding
+- Use `pnpm run db:seed` to populate with simulated data
+- Set `SEED=123456` environment variable for reproducible data
+- Generates 300 students, 30 teachers, 2 courses with realistic metrics
+- Task status distribution: 55% completed, 25% pending, 15% late, 5% missed
+- All metrics calculated according to specification requirements
+
 ### 📚 Documentation Needs
 - API endpoint documentation
 - Component library documentation

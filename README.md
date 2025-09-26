@@ -85,6 +85,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser.
 
 ### UI Components
 ![User Dropdown](screenshots/user-dropdown.png)
+
 ![Sidebar Closed](screenshots/sidebar-closed.png)
 
 ## 🎯 Core Features

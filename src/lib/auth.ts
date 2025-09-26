@@ -19,8 +19,8 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: false,
   },
-  providers: [
-    google({
+  socialProviders: {
+    google: {
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       scope: [
@@ -28,13 +28,13 @@ export const auth = betterAuth({
         "email",
         "profile",
         "https://www.googleapis.com/auth/classroom.courses.readonly",
-        "https://www.googleapis.com/auth/classroom.coursework.students.readonly", 
+        "https://www.googleapis.com/auth/classroom.coursework.students.readonly",
         "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly",
         "https://www.googleapis.com/auth/classroom.rosters.readonly",
         "https://www.googleapis.com/auth/classroom.profile.emails"
       ],
-    }),
-  ],
+    }
+  },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
@@ -45,7 +45,7 @@ export const auth = betterAuth({
       if (account?.providerId === "google") {
         await db
           .update(schema.users)
-          .set({ 
+          .set({
             role: "student",
             googleClassroomToken: account.accessToken || null,
             googleRefreshToken: account.refreshToken || null,
@@ -53,10 +53,10 @@ export const auth = betterAuth({
           })
           .where(eq(schema.users.id, user.id));
       }
-      
+
       return { user };
     },
-    
+
     async signIn({ user, account }: any) {
       // Update Google tokens on sign in
       if (account?.providerId === "google") {
@@ -70,7 +70,7 @@ export const auth = betterAuth({
           })
           .where(eq(schema.users.id, user.id));
       }
-      
+
       return { user };
     },
   },

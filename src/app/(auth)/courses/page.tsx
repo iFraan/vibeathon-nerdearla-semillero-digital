@@ -11,7 +11,6 @@ import {
   Plus,
   Eye,
   TrendingUp,
-  AlertTriangle
 } from "lucide-react"
 import { api } from "@/trpc/server";
 
@@ -24,8 +23,8 @@ interface CourseData {
   state: string;
   enrollmentCount: number;
   activeAssignments: number;
-  startDate: Date | null;
-  endDate: Date | null;
+  startDate: string | null;
+  endDate: string | null;
   completionRate: number;
   averageGrade: number;
   alternateLink: string | null;
@@ -44,30 +43,13 @@ interface CoursesResponse {
   stats?: StatsData;
 }
 
-async function getCourseData(): Promise<CoursesResponse> {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/courses`, {
-      cache: 'no-store'
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch courses');
-    }
-
-    const data = await response.json();
-    return data.data;
-  } catch (error) {
-    console.error('Error fetching courses:', error);
-    return { courses: [], userRole: 'student', stats: undefined };
-  }
+function isCoordinator(data: CoursesResponse): data is CoursesResponse & { userRole: "coordinator"; stats: StatsData } {
+  return data.userRole === "coordinator" && !!data.stats;
 }
 
 export default async function CoursesPage() {
-  const {courses,userRole} = await api.courses.list()
-  // console.log(data)
-  const {
-    // courses, userRole,
-    stats } = await getCourseData();
+  const data = await api.courses.list();
+  const { courses, userRole } = data;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -91,14 +73,14 @@ export default async function CoursesPage() {
       </div>
 
       {/* Stats Overview for Coordinators */}
-      {userRole === "coordinator" && stats && (
+      {isCoordinator(data) && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-2">
                 <BookOpen className="h-8 w-8 text-blue-600" />
                 <div>
-                  <p className="text-2xl font-bold">{stats.totalCourses}</p>
+                  <p className="text-2xl font-bold">{data.stats.totalCourses}</p>
                   <p className="text-sm text-muted-foreground">Cursos Activos</p>
                 </div>
               </div>
@@ -110,7 +92,7 @@ export default async function CoursesPage() {
               <div className="flex items-center gap-2">
                 <Users className="h-8 w-8 text-green-600" />
                 <div>
-                  <p className="text-2xl font-bold">{stats.totalStudents}</p>
+                  <p className="text-2xl font-bold">{data.stats.totalStudents}</p>
                   <p className="text-sm text-muted-foreground">Estudiantes</p>
                 </div>
               </div>
@@ -122,7 +104,7 @@ export default async function CoursesPage() {
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-8 w-8 text-purple-600" />
                 <div>
-                  <p className="text-2xl font-bold">{stats.averageCompletion}%</p>
+                  <p className="text-2xl font-bold">{data.stats.averageCompletion}%</p>
                   <p className="text-sm text-muted-foreground">Promedio Completitud</p>
                 </div>
               </div>
@@ -134,7 +116,7 @@ export default async function CoursesPage() {
               <div className="flex items-center gap-2">
                 <Clock className="h-8 w-8 text-orange-600" />
                 <div>
-                  <p className="text-2xl font-bold">{stats.totalActiveAssignments}</p>
+                  <p className="text-2xl font-bold">{data.stats.totalActiveAssignments}</p>
                   <p className="text-sm text-muted-foreground">Tareas Activas</p>
                 </div>
               </div>

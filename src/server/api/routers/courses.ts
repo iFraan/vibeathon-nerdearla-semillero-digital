@@ -9,11 +9,53 @@ import {
 	submissions,
 } from "@/lib/db/schema";
 import { createTRPCRouter, publicProcedure, protectedProcedure } from "@/server/api/trpc";
-import { Course } from "@/types/database";
+
+// --- Types for course data ---
+
+type BaseCourse = {
+	id: string;
+	name: string;
+	section: string;
+	description: string;
+	room: string | null;
+	state: string;
+	enrollmentCount: number;
+	activeAssignments: number;
+	startDate: string | null;
+	endDate: string | null;
+	completionRate: number;
+	averageGrade: number;
+	alternateLink: string | null;
+};
+
+type StudentCoursesData = {
+	courses: BaseCourse[];
+	userRole: "student";
+};
+
+type TeacherCoursesData = {
+	courses: BaseCourse[];
+	userRole: "teacher";
+};
+
+type CoordinatorStats = {
+	totalCourses: number;
+	totalStudents: number;
+	totalActiveAssignments: number;
+	averageCompletion: number;
+};
+
+type CoordinatorCoursesData = {
+	courses: BaseCourse[];
+	stats: CoordinatorStats;
+	userRole: "coordinator";
+};
+
+type CoursesData = StudentCoursesData | TeacherCoursesData | CoordinatorCoursesData;
 
 // Helper functions from REST API logic
 
-async function getStudentCourses(userId: string) {
+async function getStudentCourses(userId: string): Promise<StudentCoursesData> {
 	// Get student's enrolled courses
 	const studentEnrollments = await db.query.enrollments.findMany({
 		where: and(
@@ -56,11 +98,11 @@ async function getStudentCourses(userId: string) {
 			section: course.section || "Sin sección",
 			description: course.description || "Sin descripción",
 			room: course.room,
-			state: course.state,
+			state: course.state || "Sin estado",
 			enrollmentCount: 0, // Students don't see this
 			activeAssignments: activeAssignments.length,
-			startDate: course.startDate,
-			endDate: course.endDate,
+			startDate: course.startDate ? course.startDate.toISOString() : null,
+			endDate: course.endDate ? course.endDate.toISOString() : null,
 			completionRate: progress?.completionRate || 0,
 			averageGrade: progress?.averageGrade || 0,
 			alternateLink: course.alternateLink,
@@ -70,7 +112,7 @@ async function getStudentCourses(userId: string) {
 	return { courses, userRole: "student" };
 }
 
-async function getTeacherCourses(userId: string) {
+async function getTeacherCourses(userId: string): Promise<TeacherCoursesData> {
 	// Get teacher's courses
 	const teacherEnrollments = await db.query.enrollments.findMany({
 		where: and(
@@ -135,11 +177,11 @@ async function getTeacherCourses(userId: string) {
 			section: course.section || "Sin sección",
 			description: course.description || "Sin descripción",
 			room: course.room,
-			state: course.state,
+			state: course.state || "Sin estado",
 			enrollmentCount: studentCount,
 			activeAssignments: activeAssignments.length,
-			startDate: course.startDate,
-			endDate: course.endDate,
+			startDate: course.startDate ? course.startDate.toISOString() : null,
+			endDate: course.endDate ? course.endDate.toISOString() : null,
 			completionRate,
 			averageGrade,
 			alternateLink: course.alternateLink,
@@ -149,7 +191,7 @@ async function getTeacherCourses(userId: string) {
 	return { courses, userRole: "teacher" };
 }
 
-async function getCoordinatorCourses() {
+async function getCoordinatorCourses(): Promise<CoordinatorCoursesData> {
 	// Get all courses with comprehensive data
 	const allCourses = await db.query.courses.findMany({
 		with: {
@@ -218,11 +260,11 @@ async function getCoordinatorCourses() {
 			section: course.section || "Sin sección",
 			description: course.description || "Sin descripción",
 			room: course.room,
-			state: course.state,
+			state: course.state || "Sin estado",
 			enrollmentCount: studentCount,
 			activeAssignments: activeAssignments.length,
-			startDate: course.startDate,
-			endDate: course.endDate,
+			startDate: course.startDate ? course.startDate.toISOString() : null,
+			endDate: course.endDate ? course.endDate.toISOString() : null,
 			completionRate,
 			averageGrade,
 			alternateLink: course.alternateLink,
@@ -255,7 +297,7 @@ export const coursesRouter = createTRPCRouter({
 		}
 		const userId = session.user.id;
 		const userRole = (session.user as any).role || "student";
-		let coursesData: {courses: Partial<Course>[],userRole:string};
+		let coursesData: CoursesData;
 
 		switch (userRole) {
 			case "student":

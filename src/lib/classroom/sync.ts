@@ -101,7 +101,7 @@ export class SyncService {
 
     // Sync coursework and topics
     await this.syncCoursework(course.id, dbCourse.id);
-    await this.syncTopics(course.id, dbCourse.id);
+    // await this.syncTopics(course.id, dbCourse.id);
   }
 
   private async syncUserEnrollment(courseExternalId: string, courseId: string, userId: string): Promise<void> {
@@ -166,6 +166,8 @@ export class SyncService {
           pageSize: 50,
           pageToken
         });
+
+        console.log(response)
 
         if (response.data.courseWork) {
           for (const work of response.data.courseWork) {
@@ -307,36 +309,36 @@ export class SyncService {
     }
   }
 
-  private async syncTopics(courseExternalId: string, courseId: string): Promise<void> {
-    try {
-      const classroom = await this.client.getClassroomService();
+  // private async syncTopics(courseExternalId: string, courseId: string): Promise<void> {
+  //   try {
+  //     const classroom = await this.client.getClassroomService();
       
-      const response = await classroom.courses.topics.list({
-        courseId: courseExternalId
-      });
+  //     const response = await classroom.courses.topics.list({
+  //       courseId: courseExternalId
+  //     });
 
-      if (response.data.topic) {
-        for (const topic of response.data.topic) {
-          if (!topic.topicId || !topic.name) continue;
+  //     if (response.data.topic) {
+  //       for (const topic of response.data.topic) {
+  //         if (!topic.topicId || !topic.name) continue;
 
-          await db.insert(topics).values({
-            id: crypto.randomUUID(),
-            externalId: topic.topicId,
-            courseId,
-            name: topic.name,
-            order: 0 // Google Classroom doesn't provide order
-          }).onConflictDoUpdate({
-            target: [topics.externalId],
-            set: {
-              name: topic.name
-            }
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Failed to sync topics:', error);
-    }
-  }
+  //         await db.insert(topics).values({
+  //           id: crypto.randomUUID(),
+  //           externalId: topic.topicId,
+  //           courseId,
+  //           name: topic.name,
+  //           order: 0 // Google Classroom doesn't provide order
+  //         }).onConflictDoUpdate({
+  //           target: [topics.externalId],
+  //           set: {
+  //             name: topic.name
+  //           }
+  //         });
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('Failed to sync topics:', error);
+  //   }
+  // }
 
   async fullSyncForUser(userId: string): Promise<{ courses: SyncResult; coursework: SyncResult[]; submissions: SyncResult[] }> {
     // First sync courses

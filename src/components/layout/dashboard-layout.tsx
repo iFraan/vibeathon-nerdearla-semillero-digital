@@ -107,7 +107,7 @@ export function DashboardLayout({
 								<RefreshCw
 									className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`}
 								/>
-								{syncing ? "Syncing..." : "Sync Data"}
+								{syncing ? "Sincronizando..." : "Sincronizar datos"}
 							</Button>
 							{syncError && (
 								<span className="text-red-500 text-xs mt-1">{syncError}</span>
@@ -159,11 +159,11 @@ export function DashboardLayout({
 								<DropdownMenuSeparator />
 								<DropdownMenuItem>
 									<User className="mr-2 h-4 w-4" />
-									<span>Profile</span>
+									<span>Perfil</span>
 								</DropdownMenuItem>
 								<DropdownMenuItem>
 									<Settings className="mr-2 h-4 w-4" />
-									<span>Settings</span>
+									<span>Configuración</span>
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
@@ -171,7 +171,7 @@ export function DashboardLayout({
 									onClick={() => handleSignOut("/login")}
 								>
 									<LogOut className="mr-2 h-4 w-4" />
-									<span>Log out</span>
+									<span>Cerrar sesión</span>
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
@@ -182,7 +182,7 @@ export function DashboardLayout({
 									<RefreshCw
 										className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`}
 									/>
-									<span>{syncing ? "Syncing..." : "Sync Data"}</span>
+									<span>{syncing ? "Sincronizando..." : "Sincronizar datos"}</span>
 								</DropdownMenuItem>
 								{syncError && (
 									<div className="px-2 pb-2 text-red-500 text-xs">

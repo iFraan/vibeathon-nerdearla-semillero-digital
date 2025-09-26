@@ -30,7 +30,20 @@ A complementary web application for Google Classroom that helps Semillero Digita
    pnpm db:push
    ```
 
-5. Run the development server:
+5. Seed the database with sample data:
+   ```bash
+   pnpm run db:seed
+   ```
+   
+   After seeding, run this query to assign sample data to your logged-in user:
+   ```sql
+   update enrollments set user_id = '[LOGINUSERID]' where user_id in ('student_1', 'student_200');
+   update submissions set student_id = '[LOGINUSERID]' where student_id in ('student_1', 'student_200');
+   update student_progress set student_id = '[LOGINUSERID]' where student_id in ('student_1', 'student_200');
+   ```
+   Replace `[LOGINUSERID]` with your actual user ID from the database.
+
+6. Run the development server:
    ```bash
    pnpm dev
    ```

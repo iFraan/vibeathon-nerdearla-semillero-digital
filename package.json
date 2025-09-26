@@ -12,7 +12,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
-    "build:prod": "pnpm:db:push && pnpm db:seed && pnpm build"
+    "build:prod": "pnpm db:push && pnpm db:seed && pnpm build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -1,18 +1,19 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { 
-  BookOpen, 
-  Users, 
-  Calendar, 
-  Clock, 
-  BarChart3, 
+import {
+  BookOpen,
+  Users,
+  Calendar,
+  Clock,
+  BarChart3,
   Settings,
   Plus,
   Eye,
   TrendingUp,
   AlertTriangle
 } from "lucide-react"
+import { api } from "@/trpc/server";
 
 interface CourseData {
   id: string;
@@ -48,11 +49,11 @@ async function getCourseData(): Promise<CoursesResponse> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/courses`, {
       cache: 'no-store'
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch courses');
     }
-    
+
     const data = await response.json();
     return data.data;
   } catch (error) {
@@ -62,7 +63,11 @@ async function getCourseData(): Promise<CoursesResponse> {
 }
 
 export default async function CoursesPage() {
-  const { courses, userRole, stats } = await getCourseData();
+  const {courses,userRole} = await api.courses.list()
+  // console.log(data)
+  const {
+    // courses, userRole,
+    stats } = await getCourseData();
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -76,7 +81,7 @@ export default async function CoursesPage() {
             {userRole === "coordinator" && "Vista general de todos los cursos"}
           </p>
         </div>
-        
+
         {(userRole === "teacher" || userRole === "coordinator") && (
           <Button className="gap-2">
             <Plus className="h-4 w-4" />
@@ -99,7 +104,7 @@ export default async function CoursesPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-2">
@@ -111,7 +116,7 @@ export default async function CoursesPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-2">
@@ -123,7 +128,7 @@ export default async function CoursesPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-2">
@@ -153,28 +158,28 @@ export default async function CoursesPage() {
                 </Badge>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground line-clamp-2">
                 {course.description}
               </p>
-              
+
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <span>{course.enrollmentCount} estudiantes</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span>{course.activeAssignments} tareas activas</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span>{course.startDate ? new Date(course.startDate).toLocaleDateString() : 'Sin fecha'}</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
                   <span>{course.completionRate}% completado</span>
@@ -189,8 +194,8 @@ export default async function CoursesPage() {
                     <span>{course.completionRate}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all" 
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all"
                       style={{ width: `${course.completionRate}%` }}
                     />
                   </div>
@@ -204,8 +209,8 @@ export default async function CoursesPage() {
                     <span>{course.averageGrade}/100</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-600 h-2 rounded-full transition-all" 
+                    <div
+                      className="bg-green-600 h-2 rounded-full transition-all"
                       style={{ width: `${course.averageGrade}%` }}
                     />
                   </div>
@@ -218,14 +223,14 @@ export default async function CoursesPage() {
                   <Eye className="h-4 w-4" />
                   Ver curso
                 </Button>
-                
+
                 {userRole === "teacher" && (
                   <Button variant="outline" size="sm" className="gap-2">
                     <Settings className="h-4 w-4" />
                     Gestionar
                   </Button>
                 )}
-                
+
                 {userRole === "coordinator" && (
                   <Button variant="outline" size="sm" className="gap-2">
                     <BarChart3 className="h-4 w-4" />

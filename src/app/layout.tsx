@@ -8,6 +8,7 @@ import {
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+import { TRPCReactProvider } from "@/trpc/react";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -48,8 +49,10 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} ${ibmPlexMono.variable} ${ibmPlexSans.variable} *:antialiased`}
 				style={{ minHeight: "100vh" }}
 			>
-				<ErrorBoundary>{children}</ErrorBoundary>
-				<Toaster />
+				<TRPCReactProvider>
+					<ErrorBoundary>{children}</ErrorBoundary>
+					<Toaster />
+				</TRPCReactProvider>
 			</body>
 		</html>
 	);

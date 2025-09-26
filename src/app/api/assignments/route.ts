@@ -29,8 +29,55 @@ export async function GET(request: NextRequest) {
 
     const userRole = (session.user as any).role || "student";
     const assignments = generateMockAssignments(userRole, status, courseId);
+    
+    // Calculate stats
+    const stats = {
+      total: assignments.length,
+      pending: assignments.filter(a => 
+        userRole === 'student' 
+          ? !a.mySubmission || a.mySubmission.status === 'assigned'
+          : a.submissionCount < 30
+      ).length,
+      completed: assignments.filter(a => 
+        userRole === 'student'
+          ? a.mySubmission && a.mySubmission.status === 'turned_in'
+          : a.gradedCount === a.submissionCount
+      ).length,
+      overdue: assignments.filter(a => 
+        a.dueDate && a.dueDate < new Date() && (
+          userRole === 'student' 
+            ? (!a.mySubmission || a.mySubmission.status === 'assigned')
+            : a.submissionCount < 30
+        )
+      ).length,
+    };
 
-    return NextResponse.json({ data: assignments });
+    return NextResponse.json({ 
+      data: {
+        assignments: assignments.map(assignment => ({
+          id: assignment.id,
+          title: assignment.title,
+          description: assignment.description,
+          courseId: assignment.courseId,
+          courseName: assignment.courseName,
+          dueDate: assignment.dueDate,
+          maxPoints: assignment.maxPoints,
+          submissionStatus: assignment.mySubmission?.status === 'turned_in' ? 'submitted' : 
+                           assignment.mySubmission?.status === 'returned' ? 'graded' :
+                           assignment.mySubmission?.status === 'assigned' ? 'not_submitted' : 'not_submitted',
+          grade: assignment.mySubmission?.grade,
+          submittedAt: assignment.mySubmission?.submittedAt,
+          submissionCount: assignment.submissionCount,
+          totalStudents: 30,
+          averageGrade: assignment.gradedCount > 0 ? Math.floor(Math.random() * 30) + 70 : 0,
+          type: assignment.title.includes('Quiz') ? 'quiz' : 
+                assignment.title.includes('Project') ? 'project' : 'assignment',
+          instructions: assignment.description
+        })),
+        userRole,
+        stats
+      }
+    });
   } catch (error) {
     console.error("Assignments API error:", error);
     return NextResponse.json(

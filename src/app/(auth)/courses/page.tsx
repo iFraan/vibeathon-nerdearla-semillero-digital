@@ -10,58 +10,59 @@ import {
   Settings,
   Plus,
   Eye,
-  TrendingUp
+  TrendingUp,
+  AlertTriangle
 } from "lucide-react"
 
-// Mock data - replace with actual API calls
-const mockCourses = [
-  {
-    id: "1",
-    name: "Fundamentos de Programación",
-    section: "Cohorte 2024-A",
-    description: "Introducción a conceptos básicos de programación con Python",
-    enrollmentCount: 25,
-    activeAssignments: 3,
-    state: "ACTIVE",
-    room: "Aula Virtual 1",
-    startDate: new Date("2024-03-01"),
-    endDate: new Date("2024-06-15"),
-    completionRate: 78,
-    averageGrade: 85
-  },
-  {
-    id: "2", 
-    name: "Desarrollo Web",
-    section: "Cohorte 2024-B",
-    description: "HTML, CSS, JavaScript y React para desarrollo frontend",
-    enrollmentCount: 18,
-    activeAssignments: 2,
-    state: "ACTIVE", 
-    room: "Aula Virtual 2",
-    startDate: new Date("2024-04-01"),
-    endDate: new Date("2024-07-15"),
-    completionRate: 92,
-    averageGrade: 88
-  },
-  {
-    id: "3",
-    name: "Bases de Datos",
-    section: "Cohorte 2024-C", 
-    description: "SQL, diseño de bases de datos y administración",
-    enrollmentCount: 22,
-    activeAssignments: 1,
-    state: "ACTIVE",
-    room: "Aula Virtual 3",
-    startDate: new Date("2024-05-01"),
-    endDate: new Date("2024-08-15"),
-    completionRate: 65,
-    averageGrade: 82
+interface CourseData {
+  id: string;
+  name: string;
+  section: string;
+  description: string;
+  room: string | null;
+  state: string;
+  enrollmentCount: number;
+  activeAssignments: number;
+  startDate: Date | null;
+  endDate: Date | null;
+  completionRate: number;
+  averageGrade: number;
+  alternateLink: string | null;
+}
+
+interface StatsData {
+  totalCourses: number;
+  totalStudents: number;
+  totalActiveAssignments: number;
+  averageCompletion: number;
+}
+
+interface CoursesResponse {
+  courses: CourseData[];
+  userRole: 'student' | 'teacher' | 'coordinator';
+  stats?: StatsData;
+}
+
+async function getCourseData(): Promise<CoursesResponse> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/courses`, {
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch courses');
+    }
+    
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    return { courses: [], userRole: 'student', stats: undefined };
   }
-]
+}
 
 export default async function CoursesPage() {
-  // In a real app, get user role from session/auth
-  const userRole = "coordinator" // This should come from auth context
+  const { courses, userRole, stats } = await getCourseData();
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -85,14 +86,14 @@ export default async function CoursesPage() {
       </div>
 
       {/* Stats Overview for Coordinators */}
-      {userRole === "coordinator" && (
+      {userRole === "coordinator" && stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-2">
                 <BookOpen className="h-8 w-8 text-blue-600" />
                 <div>
-                  <p className="text-2xl font-bold">{mockCourses.length}</p>
+                  <p className="text-2xl font-bold">{stats.totalCourses}</p>
                   <p className="text-sm text-muted-foreground">Cursos Activos</p>
                 </div>
               </div>
@@ -104,9 +105,7 @@ export default async function CoursesPage() {
               <div className="flex items-center gap-2">
                 <Users className="h-8 w-8 text-green-600" />
                 <div>
-                  <p className="text-2xl font-bold">
-                    {mockCourses.reduce((acc, course) => acc + course.enrollmentCount, 0)}
-                  </p>
+                  <p className="text-2xl font-bold">{stats.totalStudents}</p>
                   <p className="text-sm text-muted-foreground">Estudiantes</p>
                 </div>
               </div>
@@ -118,9 +117,7 @@ export default async function CoursesPage() {
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-8 w-8 text-purple-600" />
                 <div>
-                  <p className="text-2xl font-bold">
-                    {Math.round(mockCourses.reduce((acc, course) => acc + course.completionRate, 0) / mockCourses.length)}%
-                  </p>
+                  <p className="text-2xl font-bold">{stats.averageCompletion}%</p>
                   <p className="text-sm text-muted-foreground">Promedio Completitud</p>
                 </div>
               </div>
@@ -130,12 +127,10 @@ export default async function CoursesPage() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-2">
-                <BarChart3 className="h-8 w-8 text-orange-600" />
+                <Clock className="h-8 w-8 text-orange-600" />
                 <div>
-                  <p className="text-2xl font-bold">
-                    {Math.round(mockCourses.reduce((acc, course) => acc + course.averageGrade, 0) / mockCourses.length)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Promedio General</p>
+                  <p className="text-2xl font-bold">{stats.totalActiveAssignments}</p>
+                  <p className="text-sm text-muted-foreground">Tareas Activas</p>
                 </div>
               </div>
             </CardContent>
@@ -145,7 +140,7 @@ export default async function CoursesPage() {
 
       {/* Courses Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockCourses.map((course) => (
+        {courses.map((course) => (
           <Card key={course.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -177,7 +172,7 @@ export default async function CoursesPage() {
                 
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>{course.startDate.toLocaleDateString()}</span>
+                  <span>{course.startDate ? new Date(course.startDate).toLocaleDateString() : 'Sin fecha'}</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -244,7 +239,7 @@ export default async function CoursesPage() {
       </div>
 
       {/* Empty state */}
-      {mockCourses.length === 0 && (
+      {courses.length === 0 && (
         <div className="text-center py-12">
           <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
           <h3 className="mt-4 text-lg font-semibold">No hay cursos disponibles</h3>

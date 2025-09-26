@@ -16,7 +16,7 @@ const client = postgres(connectionString, {
   max_lifetime: 60 * 30
 });
 
-export const db = drizzle(client, { schema });
+export const db = drizzle(client, { schema, logger: true });
 
 export default db;
 

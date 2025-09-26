@@ -502,11 +502,13 @@ function SidebarMenuButton({
   size = "default",
   tooltip,
   className,
+  disabled = false,
   ...props
 }: React.ComponentProps<"button"> & {
   asChild?: boolean
   isActive?: boolean
   tooltip?: string | React.ComponentProps<typeof TooltipContent>
+  disabled?: boolean
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
   const Comp = asChild ? Slot : "button"
   const { isMobile, state } = useSidebar()
@@ -518,6 +520,8 @@ function SidebarMenuButton({
       data-size={size}
       data-active={isActive}
       className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+      disabled={disabled}
+      aria-disabled={disabled}
       {...props}
     />
   )
@@ -671,13 +675,28 @@ function SidebarMenuSubButton({
   size = "md",
   isActive = false,
   className,
+  disabled = false,
   ...props
 }: React.ComponentProps<"a"> & {
   asChild?: boolean
   size?: "sm" | "md"
   isActive?: boolean
+  disabled?: boolean
 }) {
   const Comp = asChild ? Slot : "a"
+
+  // If disabled, prevent click and tab navigation
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    if (disabled) {
+      e.preventDefault()
+      e.stopPropagation()
+      return
+    }
+    if (props.onClick) {
+      // @ts-ignore
+      props.onClick(e)
+    }
+  }
 
   return (
     <Comp
@@ -693,6 +712,9 @@ function SidebarMenuSubButton({
         "group-data-[collapsible=icon]:hidden",
         className
       )}
+      aria-disabled={disabled}
+      tabIndex={disabled ? -1 : undefined}
+      onClick={handleClick}
       {...props}
     />
   )

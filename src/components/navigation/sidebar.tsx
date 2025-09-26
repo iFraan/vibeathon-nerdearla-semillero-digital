@@ -15,10 +15,10 @@ import {
   SidebarMenuBadge,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { 
-  BookOpen, 
-  GraduationCap, 
-  BarChart3, 
+import {
+  BookOpen,
+  GraduationCap,
+  BarChart3,
   Users,
   Settings,
   ClipboardList,
@@ -47,6 +47,7 @@ export interface MenuItem {
   };
   requiredRoles: UserRole[];
   description?: string;
+  disabled?: boolean; // Added disabled property, defaults to false
 }
 
 // Define menu configuration
@@ -59,7 +60,8 @@ export const menuConfig: MenuSection[] = [
         href: "/dashboard",
         icon: BarChart3,
         requiredRoles: ["student", "teacher", "coordinator"],
-        description: "Vista general del panel principal"
+        description: "Vista general del panel principal",
+        disabled: false
       }
     ]
   },
@@ -71,21 +73,24 @@ export const menuConfig: MenuSection[] = [
         href: "/courses",
         icon: BookOpen,
         requiredRoles: ["student"],
-        description: "Ver tus cursos inscritos"
+        description: "Ver tus cursos inscritos",
+        disabled: false
       },
       {
         title: "Tareas",
         href: "/assignments",
         icon: ClipboardList,
         requiredRoles: ["student"],
-        description: "Ver y enviar tareas"
+        description: "Ver y enviar tareas",
+        disabled: false
       },
       {
         title: "Progreso",
         href: "/progress",
         icon: TrendingUp,
         requiredRoles: ["student"],
-        description: "Seguir tu progreso de aprendizaje"
+        description: "Seguir tu progreso de aprendizaje",
+        disabled: false
       }
     ]
   },
@@ -97,14 +102,16 @@ export const menuConfig: MenuSection[] = [
         href: "/classes",
         icon: Users,
         requiredRoles: ["teacher", "coordinator"],
-        description: "Gestionar tus clases"
+        description: "Gestionar tus clases",
+        disabled: false
       },
       {
         title: "Tareas",
         href: "/assignments",
         icon: ClipboardCheck,
         requiredRoles: ["teacher", "coordinator"],
-        description: "Crear y gestionar tareas"
+        description: "Crear y gestionar tareas",
+        disabled: false
       },
       {
         title: "Entregas",
@@ -112,14 +119,16 @@ export const menuConfig: MenuSection[] = [
         icon: FileText,
         badge: { text: "Nuevo", variant: "destructive" },
         requiredRoles: ["teacher", "coordinator"],
-        description: "Revisar entregas de estudiantes"
+        description: "Revisar entregas de estudiantes",
+        disabled: false
       },
       {
         title: "Calificaciones",
         href: "/grading",
         icon: GraduationCap,
         requiredRoles: ["teacher", "coordinator"],
-        description: "Calificar trabajo de estudiantes"
+        description: "Calificar trabajo de estudiantes",
+        disabled: false
       }
     ]
   },
@@ -131,21 +140,24 @@ export const menuConfig: MenuSection[] = [
         href: "/analytics",
         icon: BarChart3,
         requiredRoles: ["coordinator"],
-        description: "Analíticas del programa e informes"
+        description: "Analíticas del programa e informes",
+        disabled: false
       },
       {
         title: "Gestión de Usuarios",
         href: "/users",
         icon: UserCheck,
         requiredRoles: ["coordinator"],
-        description: "Gestionar estudiantes y profesores"
+        description: "Gestionar estudiantes y profesores",
+        disabled: false
       },
       {
         title: "Reportes",
         href: "/reports",
         icon: FileText,
         requiredRoles: ["coordinator"],
-        description: "Generar y exportar reportes"
+        description: "Generar y exportar reportes",
+        disabled: false
       }
     ]
   },
@@ -158,21 +170,24 @@ export const menuConfig: MenuSection[] = [
         icon: Bell,
         badge: { text: "3", variant: "secondary" },
         requiredRoles: ["student", "teacher", "coordinator"],
-        description: "Ver notificaciones y anuncios"
+        description: "Ver notificaciones y anuncios",
+        disabled: false
       },
       {
         title: "Calendario",
         href: "/calendar",
         icon: Calendar,
         requiredRoles: ["student", "teacher", "coordinator"],
-        description: "Ver fechas límite de tareas y eventos"
+        description: "Ver fechas límite de tareas y eventos",
+        disabled: true
       },
       {
         title: "Configuración",
         href: "/settings",
         icon: Settings,
         requiredRoles: ["student", "teacher", "coordinator"],
-        description: "Configuración de cuenta y preferencias"
+        description: "Configuración de cuenta y preferencias",
+        disabled: false
       }
     ]
   }
@@ -216,19 +231,35 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
                 {section.items.map((item) => {
                   const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
                   const Icon = item.icon;
-                  
+
                   return (
                     <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton asChild isActive={isActive} tooltip={item.description}>
-                        <Link href={item.href}>
-                          <Icon />
-                          <span>{item.title}</span>
-                          {item.badge && (
-                            <SidebarMenuBadge>
-                              {item.badge.text}
-                            </SidebarMenuBadge>
-                          )}
-                        </Link>
+                      <SidebarMenuButton asChild isActive={isActive} tooltip={item.description} disabled={item.disabled}>
+                        {item.disabled ? (
+                          <span
+                            aria-disabled="true"
+                            tabIndex={-1}
+                            style={{ pointerEvents: "none", display: "flex", alignItems: "center", width: "100%" }}
+                          >
+                            <Icon />
+                            <span>{item.title}</span>
+                            {item.badge && (
+                              <SidebarMenuBadge>
+                                {item.badge.text}
+                              </SidebarMenuBadge>
+                            )}
+                          </span>
+                        ) : (
+                          <Link href={item.href}>
+                            <Icon />
+                            <span>{item.title}</span>
+                            {item.badge && (
+                              <SidebarMenuBadge>
+                                {item.badge.text}
+                              </SidebarMenuBadge>
+                            )}
+                          </Link>
+                        )}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );

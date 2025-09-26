@@ -193,13 +193,13 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
     .filter(section => section.items.length > 0);
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2">
+        <div className="flex items-center gap-2 px-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
           <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-sm">SD</span>
           </div>
-          <div>
+          <div className="group-data-[collapsible=icon]:hidden">
             <h2 className="text-sm font-semibold">Semillero Digital</h2>
             <p className="text-xs text-muted-foreground">Learning Dashboard</p>
           </div>

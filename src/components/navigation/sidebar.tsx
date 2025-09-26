@@ -67,21 +67,21 @@ export const menuConfig: MenuSection[] = [
     items: [
       {
         title: "My Courses",
-        href: "/student/courses",
+        href: "/courses",
         icon: BookOpen,
         requiredRoles: ["student"],
         description: "View your enrolled courses"
       },
       {
         title: "Assignments",
-        href: "/student/assignments",
+        href: "/assignments",
         icon: ClipboardList,
         requiredRoles: ["student"],
         description: "View and submit assignments"
       },
       {
         title: "Progress",
-        href: "/student/progress",
+        href: "/progress",
         icon: TrendingUp,
         requiredRoles: ["student"],
         description: "Track your learning progress"
@@ -93,21 +93,21 @@ export const menuConfig: MenuSection[] = [
     items: [
       {
         title: "My Classes",
-        href: "/teacher/classes",
+        href: "/classes",
         icon: Users,
         requiredRoles: ["teacher", "coordinator"],
         description: "Manage your classes"
       },
       {
         title: "Assignments",
-        href: "/teacher/assignments",
+        href: "/assignments",
         icon: ClipboardCheck,
         requiredRoles: ["teacher", "coordinator"],
         description: "Create and manage assignments"
       },
       {
         title: "Submissions",
-        href: "/teacher/submissions",
+        href: "/submissions",
         icon: FileText,
         badge: { text: "New", variant: "destructive" },
         requiredRoles: ["teacher", "coordinator"],
@@ -115,7 +115,7 @@ export const menuConfig: MenuSection[] = [
       },
       {
         title: "Grading",
-        href: "/teacher/grading",
+        href: "/grading",
         icon: GraduationCap,
         requiredRoles: ["teacher", "coordinator"],
         description: "Grade student work"
@@ -127,21 +127,21 @@ export const menuConfig: MenuSection[] = [
     items: [
       {
         title: "Analytics",
-        href: "/coordinator/analytics",
+        href: "/analytics",
         icon: BarChart3,
         requiredRoles: ["coordinator"],
         description: "Program analytics and reports"
       },
       {
         title: "User Management",
-        href: "/coordinator/users",
+        href: "/users",
         icon: UserCheck,
         requiredRoles: ["coordinator"],
         description: "Manage students and teachers"
       },
       {
         title: "Reports",
-        href: "/coordinator/reports",
+        href: "/reports",
         icon: FileText,
         requiredRoles: ["coordinator"],
         description: "Generate and export reports"

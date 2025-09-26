@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { google } from "better-auth/social-providers";
 import { eq } from "drizzle-orm";
 import { db } from "./database";
@@ -9,16 +10,12 @@ if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
 }
 
 export const auth = betterAuth({
-  database: {
+  database: drizzleAdapter(db, {
     provider: "pg",
-    url: process.env.DATABASE_URL!,
     schema: {
-      user: schema.users,
-      session: schema.sessions,
-      account: schema.accounts,
-      verification: schema.verifications,
+      ...schema,
     },
-  },
+  }),
   emailAndPassword: {
     enabled: false,
   },

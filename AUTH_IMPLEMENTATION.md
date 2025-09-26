@@ -51,7 +51,7 @@ src/
 
 ## 🔐 Authentication Flow
 
-1. **Sign In**: User clicks Google sign-in → OAuth flow → Better-Auth session
+1. **Sign In**: User clicks Google login → OAuth flow → Better-Auth session
 2. **Token Storage**: Google Classroom API tokens stored securely
 3. **Role Assignment**: Default "student" role, manually promote to teacher/coordinator
 4. **Middleware**: Every request validated, role-based route protection

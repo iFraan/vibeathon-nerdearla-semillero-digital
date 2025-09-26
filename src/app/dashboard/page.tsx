@@ -11,7 +11,7 @@ export default async function DashboardPage() {
   });
   
   if (!session?.user) {
-    redirect("/sign-in");
+    redirect("/login");
   }
 
   const user = {
@@ -21,6 +21,10 @@ export default async function DashboardPage() {
     role: (session.user as any).role || "student", // Default to student role
     image: session.user.image || undefined
   };
+
+  console.log({
+    session, user
+  })
 
   return (
     <DashboardLayout user={user}>

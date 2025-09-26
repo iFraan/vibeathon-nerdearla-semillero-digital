@@ -1,5 +1,6 @@
 "use client";
 
+import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function ThemeToggle() {
@@ -47,44 +48,14 @@ export function ThemeToggle() {
 		<button
 			aria-label={`Cambiar a modo ${theme === "light" ? "oscuro" : "claro"}`}
 			onClick={toggleTheme}
-			className="rounded-full p-2 bg-muted hover:bg-accent transition-colors border border-border shadow text-xl"
+			className="rounded-full p-2 bg-muted hover:bg-accent/60 text-primary-foreground transition-colors border border-border shadow text-xl"
 			title={theme === "light" ? "Modo oscuro" : "Modo claro"}
 			type="button"
 		>
 			{theme === "light" ? (
-				// Moon icon
-				<svg
-					width={22}
-					height={22}
-					fill="none"
-					viewBox="0 0 24 24"
-					className="text-foreground"
-				>
-					<path
-						d="M21 12.79A9 9 0 0111.21 3a1 1 0 00-1.13 1.32A7 7 0 1019.68 13.92a1 1 0 001.32-1.13z"
-						stroke="currentColor"
-						strokeWidth={2}
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					/>
-				</svg>
+				<Moon className="text-foreground h-4 w-4" />
 			) : (
-				// Sun icon
-				<svg
-					width={22}
-					height={22}
-					fill="none"
-					viewBox="0 0 24 24"
-					className="text-foreground"
-				>
-					<circle cx={12} cy={12} r={5} stroke="currentColor" strokeWidth={2} />
-					<path
-						d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-						stroke="currentColor"
-						strokeWidth={2}
-						strokeLinecap="round"
-					/>
-				</svg>
+				<Sun className="text-foreground h-4 w-4" />
 			)}
 		</button>
 	);

@@ -35,16 +35,16 @@ export function StatCard({
   className
 }: StatCardProps) {
   const variantStyles = {
-    default: "border-border",
-    success: "border-green-200 bg-green-50/50",
-    warning: "border-yellow-200 bg-yellow-50/50", 
-    danger: "border-red-200 bg-red-50/50"
+    default: "border-border bg-card",
+    success: "border-secondary bg-secondary/10",
+    warning: "border-accent bg-accent/10", 
+    danger: "border-destructive bg-destructive/10"
   };
 
   const trendStyles = {
-    up: "text-green-600 bg-green-100",
-    down: "text-red-600 bg-red-100",
-    neutral: "text-muted-foreground bg-muted"
+    up: "text-secondary-foreground bg-secondary/20",
+    down: "text-destructive-foreground bg-destructive/20",
+    neutral: "text-muted-foreground bg-muted/20"
   };
 
   return (

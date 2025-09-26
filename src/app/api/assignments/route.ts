@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { coursework, courses, submissions, users, enrollments } from "@/lib/db/schema";
+import { eq, and, count, avg, sql } from "drizzle-orm";
 import type { Assignment, User, Submission } from "@/types";
 
 interface AssignmentWithDetails extends Assignment {
@@ -28,9 +31,205 @@ export async function GET(request: NextRequest) {
     const courseId = searchParams.get("courseId");
 
     const userRole = (session.user as any).role || "student";
-    const assignments = generateMockAssignments(userRole, status, courseId);
+    const userId = session.user.id;
 
-    return NextResponse.json({ data: assignments });
+    // Get user's enrolled courses if they're a student
+    let userCourses: { courseId: string }[] = [];
+    if (userRole === 'student') {
+      userCourses = await db
+        .select({ courseId: enrollments.courseId })
+        .from(enrollments)
+        .where(eq(enrollments.userId, userId));
+    }
+
+    // Get coursework data
+    const courseworkData = await db
+      .select({
+        id: coursework.id,
+        externalId: coursework.externalId,
+        title: coursework.title,
+        description: coursework.description,
+        maxPoints: coursework.maxPoints,
+        dueDate: coursework.dueDate,
+        courseId: coursework.courseId,
+        courseName: courses.name,
+        teacherName: users.name,
+        createdAt: coursework.createdAt,
+      })
+      .from(coursework)
+      .innerJoin(courses, eq(coursework.courseId, courses.id))
+      .leftJoin(users, eq(courses.ownerGoogleId, users.googleId));
+
+    // Filter coursework based on role and params
+    let filteredCoursework = courseworkData;
+    
+    // Filter by course if specified
+    if (courseId) {
+      filteredCoursework = filteredCoursework.filter(cw => cw.courseId === courseId);
+    }
+    
+    // Filter by user's enrolled courses if student
+    if (userRole === 'student' && userCourses.length > 0) {
+      const courseIds = userCourses.map(c => c.courseId);
+      filteredCoursework = filteredCoursework.filter(cw => courseIds.includes(cw.courseId));
+    }
+
+    // Get submissions for each coursework
+    const assignments: AssignmentWithDetails[] = [];
+    
+    for (const cw of filteredCoursework) {
+      // Get submission counts
+      const submissionStats = await db
+        .select({
+          total: count(),
+          graded: count(sql`CASE WHEN ${submissions.assignedGrade} IS NOT NULL THEN 1 END`),
+        })
+        .from(submissions)
+        .where(eq(submissions.courseworkId, cw.id));
+
+      // Get user's submission if student
+      let mySubmission = null;
+      if (userRole === 'student') {
+        const userSubmissions = await db
+          .select()
+          .from(submissions)
+          .where(and(
+            eq(submissions.courseworkId, cw.id),
+            eq(submissions.studentId, userId)
+          ))
+          .limit(1);
+        
+        if (userSubmissions.length > 0) {
+          const sub = userSubmissions[0];
+          mySubmission = {
+            id: sub.id,
+            assignmentId: cw.id,
+            studentId: sub.studentId,
+            googleSubmissionId: sub.externalId,
+            status: (sub.state === 'TURNED_IN' ? 'turned_in' : 
+                   sub.state === 'RETURNED' ? 'returned' : 'assigned') as "assigned" | "returned" | "turned_in" | "new" | "created",
+            grade: sub.assignedGrade || sub.finalGrade || undefined,
+            submittedAt: sub.turnedInAt || undefined,
+            gradedAt: sub.returnedAt || undefined
+          };
+        }
+      }
+
+      const assignment: AssignmentWithDetails = {
+        id: cw.id,
+        courseId: cw.courseId,
+        googleClassroomId: cw.externalId,
+        title: cw.title,
+        description: cw.description || '',
+        dueDate: cw.dueDate || undefined,
+        maxPoints: cw.maxPoints || undefined,
+        createdAt: cw.createdAt,
+        submissions: [],
+        courseName: cw.courseName,
+        teacherName: cw.teacherName || 'Unknown Teacher',
+        submissionCount: submissionStats[0]?.total || 0,
+        gradedCount: submissionStats[0]?.graded || 0,
+        mySubmission: mySubmission || undefined
+      };
+
+      // Apply status filter for students
+      if (userRole === 'student' && status) {
+        const shouldInclude = (() => {
+          switch (status) {
+            case 'assigned':
+              return !mySubmission || mySubmission.status === 'assigned';
+            case 'turned_in':
+              return mySubmission && mySubmission.status === 'turned_in';
+            case 'returned':
+              return mySubmission && mySubmission.status === 'returned';
+            case 'overdue':
+              return cw.dueDate && cw.dueDate < new Date() && 
+                     (!mySubmission || mySubmission.status === 'assigned');
+            default:
+              return true;
+          }
+        })();
+        
+        if (!shouldInclude) continue;
+      }
+
+      // Apply status filter for teachers
+      if (userRole === 'teacher' && status) {
+        const shouldInclude = (() => {
+          switch (status) {
+            case 'pending_review':
+              return assignment.submissionCount > assignment.gradedCount;
+            case 'graded':
+              return assignment.gradedCount === assignment.submissionCount && assignment.submissionCount > 0;
+            case 'no_submissions':
+              return assignment.submissionCount === 0;
+            default:
+              return true;
+          }
+        })();
+        
+        if (!shouldInclude) continue;
+      }
+
+      assignments.push(assignment);
+    }
+
+    // Sort by due date
+    assignments.sort((a, b) => {
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return a.dueDate.getTime() - b.dueDate.getTime();
+    });
+
+    // Calculate stats
+    const stats = {
+      total: assignments.length,
+      pending: assignments.filter(a => 
+        userRole === 'student' 
+          ? !a.mySubmission || a.mySubmission.status === 'assigned'
+          : a.submissionCount > a.gradedCount
+      ).length,
+      completed: assignments.filter(a => 
+        userRole === 'student'
+          ? a.mySubmission && (a.mySubmission.status === 'turned_in' || a.mySubmission.status === 'returned')
+          : a.gradedCount === a.submissionCount && a.submissionCount > 0
+      ).length,
+      overdue: assignments.filter(a => 
+        a.dueDate && a.dueDate < new Date() && (
+          userRole === 'student' 
+            ? (!a.mySubmission || a.mySubmission.status === 'assigned')
+            : a.submissionCount > a.gradedCount
+        )
+      ).length,
+    };
+
+    return NextResponse.json({ 
+      data: {
+        assignments: assignments.map(assignment => ({
+          id: assignment.id,
+          title: assignment.title,
+          description: assignment.description,
+          courseId: assignment.courseId,
+          courseName: assignment.courseName,
+          dueDate: assignment.dueDate,
+          maxPoints: assignment.maxPoints,
+          submissionStatus: assignment.mySubmission?.status === 'turned_in' ? 'submitted' : 
+                           assignment.mySubmission?.status === 'returned' ? 'graded' :
+                           'not_submitted',
+          grade: assignment.mySubmission?.grade,
+          submittedAt: assignment.mySubmission?.submittedAt,
+          submissionCount: assignment.submissionCount,
+          totalStudents: assignment.submissionCount, // Use actual submission count
+          averageGrade: assignment.gradedCount > 0 ? 85 : 0, // TODO: Calculate actual average
+          type: assignment.title.toLowerCase().includes('quiz') ? 'quiz' : 
+                assignment.title.toLowerCase().includes('project') ? 'project' : 'assignment',
+          instructions: assignment.description
+        })),
+        userRole,
+        stats
+      }
+    });
   } catch (error) {
     console.error("Assignments API error:", error);
     return NextResponse.json(
@@ -40,191 +239,4 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function generateMockAssignments(
-  role: string,
-  statusFilter?: string | null,
-  courseFilter?: string | null
-): AssignmentWithDetails[] {
-  const baseDate = new Date();
-  
-  const allAssignments: AssignmentWithDetails[] = [
-    {
-      id: "1",
-      courseId: "course-1",
-      googleClassroomId: "gc-assignment-1",
-      title: "JavaScript Functions Exercise",
-      description: "Create functions to solve common programming problems using ES6+ syntax",
-      dueDate: new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000),
-      maxPoints: 100,
-      courseName: "Web Development",
-      teacherName: "Prof. Ana García",
-      submissionCount: role === "student" ? 1 : 28,
-      gradedCount: role === "student" ? 1 : 25,
-      createdAt: new Date(baseDate.getTime() - 7 * 24 * 60 * 60 * 1000),
-      submissions: [],
-      mySubmission: role === "student" ? {
-        id: "sub-1",
-        assignmentId: "1",
-        studentId: "student-1",
-        googleSubmissionId: "gc-sub-1",
-        status: "turned_in",
-        grade: 95,
-        submittedAt: new Date(baseDate.getTime() - 24 * 60 * 60 * 1000),
-        gradedAt: new Date(baseDate.getTime() - 12 * 60 * 60 * 1000)
-      } : undefined
-    },
-    {
-      id: "2",
-      courseId: "course-2",
-      googleClassroomId: "gc-assignment-2",
-      title: "React Components Project",
-      description: "Build a weather app using React hooks and component composition",
-      dueDate: new Date(baseDate.getTime() + 5 * 24 * 60 * 60 * 1000),
-      maxPoints: 150,
-      courseName: "Advanced React",
-      teacherName: "Prof. Carlos López",
-      submissionCount: role === "student" ? 0 : 15,
-      gradedCount: role === "student" ? 0 : 8,
-      createdAt: new Date(baseDate.getTime() - 3 * 24 * 60 * 60 * 1000),
-      submissions: [],
-      mySubmission: role === "student" ? {
-        id: "sub-2",
-        assignmentId: "2",
-        studentId: "student-1",
-        googleSubmissionId: "gc-sub-2",
-        status: "assigned",
-        submittedAt: undefined,
-        gradedAt: undefined
-      } : undefined
-    },
-    {
-      id: "3",
-      courseId: "course-3",
-      googleClassroomId: "gc-assignment-3",
-      title: "Database Design Quiz",
-      description: "Multiple choice quiz covering normalization and entity relationships",
-      dueDate: new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000),
-      maxPoints: 50,
-      courseName: "Database Design",
-      teacherName: "Prof. María Rodríguez",
-      submissionCount: role === "student" ? 0 : 22,
-      gradedCount: role === "student" ? 0 : 22,
-      createdAt: new Date(baseDate.getTime() - 1 * 24 * 60 * 60 * 1000),
-      submissions: [],
-      mySubmission: role === "student" ? {
-        id: "sub-3",
-        assignmentId: "3",
-        studentId: "student-1",
-        googleSubmissionId: "gc-sub-3",
-        status: "assigned",
-        submittedAt: undefined,
-        gradedAt: undefined
-      } : undefined
-    },
-    {
-      id: "4",
-      courseId: "course-1",
-      googleClassroomId: "gc-assignment-4",
-      title: "HTML/CSS Layout Project",
-      description: "Create a responsive portfolio website using modern CSS techniques",
-      dueDate: new Date(baseDate.getTime() - 2 * 24 * 60 * 60 * 1000),
-      maxPoints: 120,
-      courseName: "Web Development",
-      teacherName: "Prof. Ana García",
-      submissionCount: role === "student" ? 1 : 30,
-      gradedCount: role === "student" ? 1 : 30,
-      createdAt: new Date(baseDate.getTime() - 14 * 24 * 60 * 60 * 1000),
-      submissions: [],
-      mySubmission: role === "student" ? {
-        id: "sub-4",
-        assignmentId: "4",
-        studentId: "student-1",
-        googleSubmissionId: "gc-sub-4",
-        status: "returned",
-        grade: 88,
-        submittedAt: new Date(baseDate.getTime() - 3 * 24 * 60 * 60 * 1000),
-        gradedAt: new Date(baseDate.getTime() - 1 * 24 * 60 * 60 * 1000)
-      } : undefined
-    },
-    {
-      id: "5",
-      courseId: "course-2",
-      googleClassroomId: "gc-assignment-5",
-      title: "State Management Workshop",
-      description: "Implement Redux Toolkit for state management in a todo application",
-      dueDate: new Date(baseDate.getTime() + 10 * 24 * 60 * 60 * 1000),
-      maxPoints: 100,
-      courseName: "Advanced React",
-      teacherName: "Prof. Carlos López",
-      submissionCount: role === "student" ? 0 : 5,
-      gradedCount: role === "student" ? 0 : 2,
-      createdAt: new Date(baseDate.getTime() - 1 * 24 * 60 * 60 * 1000),
-      submissions: [],
-      mySubmission: role === "student" ? {
-        id: "sub-5",
-        assignmentId: "5",
-        studentId: "student-1",
-        googleSubmissionId: "gc-sub-5",
-        status: "assigned",
-        submittedAt: undefined,
-        gradedAt: undefined
-      } : undefined
-    }
-  ];
 
-  // Filter by role
-  let filteredAssignments = allAssignments;
-  
-  if (role === "teacher") {
-    // Teachers see assignments from their courses
-    filteredAssignments = allAssignments.filter(a => 
-      a.courseName === "Web Development" || a.courseName === "Advanced React"
-    );
-  }
-
-  // Apply status filter
-  if (statusFilter && role === "student") {
-    filteredAssignments = filteredAssignments.filter(assignment => {
-      const submission = assignment.mySubmission;
-      if (!submission) return statusFilter === "assigned";
-      
-      switch (statusFilter) {
-        case "assigned":
-          return submission.status === "assigned";
-        case "turned_in":
-          return submission.status === "turned_in";
-        case "returned":
-          return submission.status === "returned";
-        case "overdue":
-          return assignment.dueDate && assignment.dueDate < new Date() && submission.status === "assigned";
-        default:
-          return true;
-      }
-    });
-  } else if (statusFilter && role === "teacher") {
-    filteredAssignments = filteredAssignments.filter(assignment => {
-      switch (statusFilter) {
-        case "pending_review":
-          return assignment.submissionCount > assignment.gradedCount;
-        case "graded":
-          return assignment.gradedCount === assignment.submissionCount && assignment.submissionCount > 0;
-        case "no_submissions":
-          return assignment.submissionCount === 0;
-        default:
-          return true;
-      }
-    });
-  }
-
-  // Apply course filter
-  if (courseFilter) {
-    filteredAssignments = filteredAssignments.filter(a => a.courseId === courseFilter);
-  }
-
-  return filteredAssignments.sort((a, b) => {
-    if (!a.dueDate && !b.dueDate) return 0;
-    if (!a.dueDate) return 1;
-    if (!b.dueDate) return -1;
-    return a.dueDate.getTime() - b.dueDate.getTime();
-  });
-}

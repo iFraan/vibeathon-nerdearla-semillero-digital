@@ -222,65 +222,73 @@ export function TeacherOverview({ teacherId, data, loading }: TeacherOverviewPro
 
   return (
     <div className="space-y-6">
-      {/* Welcome Message */}
-      <div className="bg-gradient-to-r from-green-500 to-blue-600 text-white p-6 rounded-lg">
-        <h2 className="text-2xl font-bold mb-2">Teaching Dashboard 📚</h2>
-        <p className="text-green-100">
-          You have {pendingSubmissions.length} submissions to review
-          {studentsAtRisk.length > 0 && (
-            <span className="ml-2">
-              • {studentsAtRisk.length} students need attention
-            </span>
-          )}
-        </p>
+      {/* Dashboard Header */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-background border-b border-border px-4 py-6 rounded-xl shadow-sm">
+        <div className="flex items-center gap-3">
+          <div>
+            <h2 className="text-2xl font-extrabold text-foreground leading-tight mb-1">
+              Dashboard de Profesor 📚
+            </h2>
+            <p className="text-sm text-muted-foreground font-medium">
+              Tienes {pendingSubmissions.length} entregas por revisar
+              {studentsAtRisk.length > 0 && (
+                <span className="ml-2">
+                  • {studentsAtRisk.length} estudiantes necesitan atención
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Key Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Students"
+          title="Total de Estudiantes"
           value={overview.totalStudents}
           icon={Users}
-          description="Across all courses"
+          description="En todos los cursos"
         />
         
         <StatCard
-          title="Active Courses"
+          title="Cursos Activos"
           value={overview.courses.length}
           icon={BookOpen}
-          description="Currently teaching"
+          description="Actualmente enseñando"
         />
         
         <StatCard
-          title="Pending Reviews"
+          title="Por Revisar"
           value={pendingSubmissions.length}
           icon={FileText}
           variant={pendingSubmissions.length > 10 ? "warning" : "default"}
-          description="Submissions to grade"
+          description="Entregas pendientes"
         />
         
         <StatCard
-          title="Students at Risk"
+          title="Estudiantes en Riesgo"
           value={studentsAtRisk.length}
           icon={AlertTriangle}
           variant={studentsAtRisk.length > 0 ? "danger" : "success"}
-          description="Need attention"
+          description="Necesitan atención"
         />
       </div>
 
       {/* Course Overview */}
       {overview.courses.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2">
-          <ProgressChart
-            data={courseProgressData}
-            title="Course Performance"
-            description="Average completion rate by course"
-          />
+          <div className="bg-background rounded-xl border border-border shadow p-4 flex flex-col justify-between">
+            <ProgressChart
+              data={courseProgressData}
+              title="Rendimiento por Curso"
+              description="Tasa de finalización promedio por curso"
+            />
+          </div>
           
-          <Card>
+          <div className="bg-background rounded-xl border border-border shadow">
             <CardHeader>
-              <CardTitle>Class Summary</CardTitle>
-              <CardDescription>Student engagement and performance</CardDescription>
+              <CardTitle className="text-foreground">Resumen de Clases</CardTitle>
+              <CardDescription className="text-muted-foreground">Participación y rendimiento estudiantil</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -308,13 +316,13 @@ export function TeacherOverview({ teacherId, data, loading }: TeacherOverviewPro
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </div>
         </div>
       ) : (
         <EmptyState
           icon={BookOpen}
-          title="No courses assigned"
-          description="You haven't been assigned to teach any courses yet."
+          title="Sin cursos asignados"
+          description="Aún no tienes cursos asignados para enseñar."
         />
       )}
 

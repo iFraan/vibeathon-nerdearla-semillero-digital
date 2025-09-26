@@ -89,7 +89,6 @@ function getStatusText(status: string) {
 
 export default async function AssignmentsPage() {
   const { assignments, userRole, stats } = await getAssignmentsData();
-  
   const isOverdue = (dueDate: Date) => new Date() > new Date(dueDate);
   
   const pendingAssignments = assignments.filter(a => 

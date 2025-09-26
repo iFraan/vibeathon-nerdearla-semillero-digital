@@ -62,8 +62,10 @@ export function DashboardRouter({ user, data, loading }: DashboardRouterProps) {
   };
 
   return (
-    <Suspense fallback={<LoadingState title="Loading dashboard..." />}>
-      {renderDashboard()}
-    </Suspense>
+    <div className="min-h-screen bg-background p-4 md:p-6">
+      <Suspense fallback={<LoadingState title="Loading dashboard..." />}>
+        {renderDashboard()}
+      </Suspense>
+    </div>
   );
 }

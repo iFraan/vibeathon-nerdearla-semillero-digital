@@ -324,22 +324,26 @@ export function CoordinatorOverview({ coordinatorId, data, loading }: Coordinato
 
   return (
     <div className="space-y-6">
-      {/* Header with export actions */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold">System Overview</h1>
-          <p className="text-muted-foreground">
-            Complete analytics and management for Semillero Digital
-          </p>
+      {/* Dashboard Header */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-background border-b border-border px-4 py-6 rounded-xl shadow-sm">
+        <div className="flex items-center gap-3">
+          <div>
+            <h2 className="text-2xl font-extrabold text-foreground leading-tight mb-1">
+              Panel de Coordinador 🎯
+            </h2>
+            <p className="text-sm text-muted-foreground font-medium">
+              Análisis completo y gestión de Semillero Digital
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export Report
+            Exportar Reporte
           </Button>
-          <Button>
+          <Button size="sm">
             <BarChart3 className="h-4 w-4 mr-2" />
-            Advanced Analytics
+            Analytics Avanzados
           </Button>
         </div>
       </div>
@@ -347,57 +351,61 @@ export function CoordinatorOverview({ coordinatorId, data, loading }: Coordinato
       {/* Key System Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Students"
+          title="Total de Estudiantes"
           value={systemMetrics.totalStudents}
           icon={Users}
-          description={`${systemMetrics.activeUsers} currently active`}
-          trend={{ value: 12, label: "vs last month", direction: "up" }}
+          description={`${systemMetrics.activeUsers} actualmente activos`}
+          trend={{ value: 12, label: "vs mes anterior", direction: "up" }}
         />
         
         <StatCard
-          title="Average Progress"
+          title="Progreso Promedio"
           value={`${Math.round(systemMetrics.averageCompletion)}%`}
           icon={TrendingUp}
-          description="System-wide completion"
+          description="Finalización en todo el sistema"
           variant={systemMetrics.averageCompletion >= 75 ? "success" : systemMetrics.averageCompletion >= 60 ? "warning" : "danger"}
         />
         
         <StatCard
-          title="Average Grade"
+          title="Nota Promedio"
           value={systemMetrics.averageGrade ? `${Math.round(systemMetrics.averageGrade)}%` : "N/A"}
           icon={Award}
-          description="Across all courses"
+          description="En todos los cursos"
           variant={systemMetrics.averageGrade && systemMetrics.averageGrade >= 80 ? "success" : "warning"}
         />
         
         <StatCard
-          title="Students at Risk"
+          title="Estudiantes en Riesgo"
           value={systemMetrics.studentsAtRisk}
           icon={AlertTriangle}
           variant={systemMetrics.studentsAtRisk === 0 ? "success" : systemMetrics.studentsAtRisk < 10 ? "warning" : "danger"}
-          description={`${Math.round((systemMetrics.studentsAtRisk / systemMetrics.totalStudents) * 100)}% of total`}
+          description={`${Math.round((systemMetrics.studentsAtRisk / systemMetrics.totalStudents) * 100)}% del total`}
         />
       </div>
 
       {/* Charts Overview */}
       <div className="grid gap-6 md:grid-cols-2">
-        <ProgressChart
-          data={coursePerformanceData}
-          title="Course Performance"
-          description="Completion rates across all courses"
-        />
+        <div className="bg-background rounded-xl border border-border shadow p-4 flex flex-col justify-between">
+          <ProgressChart
+            data={coursePerformanceData}
+            title="Rendimiento por Curso"
+            description="Tasas de finalización en todos los cursos"
+          />
+        </div>
         
         <div className="grid gap-4 md:grid-cols-2">
-          <PieChartComponent
-            data={riskDistribution}
-            title="Risk Distribution"
-            description="Student risk levels"
-            showLegend={false}
-          />
+          <div className="bg-background rounded-xl border border-border shadow p-4 flex flex-col justify-between">
+            <PieChartComponent
+              data={riskDistribution}
+              title="Distribución de Riesgo"
+              description="Niveles de riesgo estudiantil"
+              showLegend={false}
+            />
+          </div>
           
-          <Card>
+          <div className="bg-background rounded-xl border border-border shadow">
             <CardHeader>
-              <CardTitle className="text-sm">System Health</CardTitle>
+              <CardTitle className="text-sm text-foreground">Estado del Sistema</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -419,24 +427,28 @@ export function CoordinatorOverview({ coordinatorId, data, loading }: Coordinato
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </div>
         </div>
       </div>
 
       {/* Engagement Trends */}
-      <AreaChartComponent
-        data={engagementChartData}
-        dataKeys={engagementDataKeys}
-        title="User Engagement Trends"
-        description="Daily activity metrics over the past 30 days"
-      />
+      <div className="bg-background rounded-xl border border-border shadow p-4">
+        <AreaChartComponent
+          data={engagementChartData}
+          dataKeys={engagementDataKeys}
+          title="Tendencias de Participación"
+          description="Métricas de actividad diaria en los últimos 30 días"
+        />
+      </div>
 
       {/* Grade Distribution */}
-      <GradeDistributionChart
-        data={gradeDistribution}
-        title="Grade Distribution"
-        description="Distribution of grades across all assignments"
-      />
+      <div className="bg-background rounded-xl border border-border shadow p-4">
+        <GradeDistributionChart
+          data={gradeDistribution}
+          title="Distribución de Notas"
+          description="Distribución de calificaciones en todas las tareas"
+        />
+      </div>
 
       {/* Detailed Tables */}
       <Tabs defaultValue="courses" className="space-y-4">

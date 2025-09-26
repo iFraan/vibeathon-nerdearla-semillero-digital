@@ -1,6 +1,6 @@
 "use client";
 
-import { createAuthClient } from "better-auth/client";
+import { createAuthClient } from "better-auth/react";
 import type { AuthUser } from "@/types/auth";
 
 // Client-side auth methods

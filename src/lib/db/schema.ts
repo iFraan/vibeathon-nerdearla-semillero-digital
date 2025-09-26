@@ -1,35 +1,165 @@
-import { pgTable, text, timestamp, varchar, integer, decimal, boolean, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, varchar, integer, boolean, jsonb, pgEnum } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
+// Enums
+export const userRoleEnum = pgEnum("user_role", ["student", "teacher", "coordinator"]);
+export const notificationTypeEnum = pgEnum("notification_type", ["assignment", "grade", "announcement", "reminder"]);
+export const notificationStatusEnum = pgEnum("notification_status", ["sent", "delivered", "read", "failed"]);
+export const assignmentStatusEnum = pgEnum("assignment_status", ["assigned", "submitted", "graded", "returned"]);
+
+// Users table
 export const users = pgTable("users", {
-  id: text("id").primaryKey(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: varchar("email", { length: 255 }).unique().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   image: text("image"),
-  role: varchar("role", { length: 50 }).notNull().$type<"student" | "teacher" | "coordinator">(),
-  googleId: varchar("google_id", { length: 255 }),
+  googleId: varchar("google_id", { length: 255 }).unique(),
+  role: userRoleEnum("role").default("student").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  googleClassroomToken: text("google_classroom_token"),
+  googleRefreshToken: text("google_refresh_token"),
+  tokenExpiresAt: timestamp("token_expires_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Courses table (synced from Google Classroom)
+export const courses = pgTable("courses", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  externalId: varchar("external_id", { length: 255 }).unique().notNull(), // Google Classroom ID
+  name: varchar("name", { length: 255 }).notNull(),
+  section: varchar("section", { length: 255 }),
+  description: text("description"),
+  room: varchar("room", { length: 100 }),
+  state: varchar("state", { length: 50 }).default("ACTIVE"),
+  ownerGoogleId: varchar("owner_google_id", { length: 255 }),
+  enrollmentCode: varchar("enrollment_code", { length: 50 }),
+  alternateLink: text("alternate_link"),
+  teacherGroupEmail: varchar("teacher_group_email", { length: 255 }),
+  courseGroupEmail: varchar("course_group_email", { length: 255 }),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  lastSyncAt: timestamp("last_sync_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Course enrollments table
+export const enrollments = pgTable("enrollments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  courseId: uuid("course_id").references(() => courses.id).notNull(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  roleInCourse: varchar("role_in_course", { length: 50 }).default("STUDENT").notNull(), // STUDENT, TEACHER, OWNER
+  externalId: varchar("external_id", { length: 255 }), // Google user ID in the course context
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Coursework table (synced from Google Classroom)
+export const coursework = pgTable("coursework", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  externalId: varchar("external_id", { length: 255 }).unique().notNull(),
+  courseId: uuid("course_id").references(() => courses.id).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  state: varchar("state", { length: 50 }).default("PUBLISHED"),
+  maxPoints: integer("max_points"),
+  dueDate: timestamp("due_date"),
+  topicId: varchar("topic_id", { length: 255 }),
+  alternateLink: text("alternate_link"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Student submissions table (synced from Google Classroom)
+export const submissions = pgTable("submissions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  externalId: varchar("external_id", { length: 255 }).unique().notNull(),
+  courseworkId: uuid("coursework_id").references(() => coursework.id).notNull(),
+  studentId: uuid("student_id").references(() => users.id).notNull(),
+  state: varchar("state", { length: 50 }).default("NEW").notNull(),
+  late: boolean("late").default(false),
+  assignedAt: timestamp("assigned_at"),
+  turnedInAt: timestamp("turned_in_at"),
+  returnedAt: timestamp("returned_at"),
+  draftGrade: integer("draft_grade"),
+  assignedGrade: integer("assigned_grade"),
+  finalGrade: integer("final_grade"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Topics table (synced from Google Classroom)
+export const topics = pgTable("topics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  externalId: varchar("external_id", { length: 255 }).unique().notNull(),
+  courseId: uuid("course_id").references(() => courses.id).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  order: integer("order").default(0),
+});
+
+// Student progress tracking table
+export const studentProgress = pgTable("student_progress", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studentId: uuid("student_id").references(() => users.id).notNull(),
+  courseId: uuid("course_id").references(() => courses.id).notNull(),
+  totalAssignments: integer("total_assignments").default(0),
+  completedAssignments: integer("completed_assignments").default(0),
+  averageGrade: integer("average_grade"),
+  attendanceRate: integer("attendance_rate"),
+  lastActivity: timestamp("last_activity"),
+  completionRate: integer("completion_rate").default(0),
+  onTimeSubmissions: integer("on_time_submissions").default(0),
+  lateSubmissions: integer("late_submissions").default(0),
+  missedAssignments: integer("missed_assignments").default(0),
+  progressData: jsonb("progress_data"),
+  calculatedAt: timestamp("calculated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Notifications and communications log
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  recipientId: uuid("recipient_id").references(() => users.id).notNull(),
+  senderId: uuid("sender_id").references(() => users.id),
+  courseId: uuid("course_id").references(() => courses.id),
+  assignmentId: uuid("assignment_id").references(() => coursework.id),
+  type: notificationTypeEnum("type").notNull(),
+  status: notificationStatusEnum("status").default("sent").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  metadata: jsonb("metadata"),
+  channels: jsonb("channels"), // email, whatsapp, telegram, etc.
+  scheduledFor: timestamp("scheduled_for"),
+  sentAt: timestamp("sent_at"),
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Better-Auth tables for sessions
+export const sessions = pgTable("sessions", {
+  id: text("id").primaryKey(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const accounts = pgTable("accounts", {
   id: text("id").primaryKey(),
-  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
   expiresAt: timestamp("expires_at"),
   password: text("password"),
-});
-
-export const sessions = pgTable("sessions", {
-  id: text("id").primaryKey(),
-  expiresAt: timestamp("expires_at").notNull(),
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
-  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const verifications = pgTable("verifications", {
@@ -37,83 +167,95 @@ export const verifications = pgTable("verifications", {
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
-});
-
-export const courses = pgTable("courses", {
-  id: text("id").primaryKey(),
-  googleClassroomId: varchar("google_classroom_id", { length: 255 }).notNull().unique(),
-  name: varchar("name", { length: 500 }).notNull(),
-  description: text("description"),
-  teacherId: text("teacher_id").notNull().references(() => users.id),
-  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const students = pgTable("students", {
-  id: text("id").primaryKey(),
-  userId: text("user_id").notNull().references(() => users.id),
-  courseId: text("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
-  enrolledAt: timestamp("enrolled_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    userCourseIdx: uniqueIndex("user_course_idx").on(table.userId, table.courseId),
-  };
-});
-
-export const assignments = pgTable("assignments", {
-  id: text("id").primaryKey(),
-  courseId: text("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
-  googleClassroomId: varchar("google_classroom_id", { length: 255 }).notNull(),
-  title: varchar("title", { length: 500 }).notNull(),
-  description: text("description"),
-  dueDate: timestamp("due_date"),
-  maxPoints: decimal("max_points", { precision: 10, scale: 2 }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const submissions = pgTable("submissions", {
-  id: text("id").primaryKey(),
-  assignmentId: text("assignment_id").notNull().references(() => assignments.id, { onDelete: "cascade" }),
-  studentId: text("student_id").notNull().references(() => students.id, { onDelete: "cascade" }),
-  googleSubmissionId: varchar("google_submission_id", { length: 255 }).notNull(),
-  status: varchar("status", { length: 50 }).notNull().$type<"assigned" | "returned" | "turned_in" | "new" | "created">(),
-  grade: decimal("grade", { precision: 10, scale: 2 }),
-  submittedAt: timestamp("submitted_at"),
-  gradedAt: timestamp("graded_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    assignmentStudentIdx: uniqueIndex("assignment_student_idx").on(table.assignmentId, table.studentId),
-  };
-});
-
-export const studentProgress = pgTable("student_progress", {
-  id: text("id").primaryKey(),
-  studentId: text("student_id").notNull().references(() => students.id, { onDelete: "cascade" }),
-  assignmentId: text("assignment_id").notNull().references(() => assignments.id, { onDelete: "cascade" }),
-  completionPercentage: integer("completion_percentage").notNull().default(0),
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-}, (table) => {
-  return {
-    studentAssignmentIdx: uniqueIndex("student_assignment_idx").on(table.studentId, table.assignmentId),
-  };
 });
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts),
+  enrollments: many(enrollments),
+  submissions: many(submissions),
+  studentProgress: many(studentProgress),
+  sentNotifications: many(notifications, { relationName: "sender" }),
+  receivedNotifications: many(notifications, { relationName: "recipient" }),
   sessions: many(sessions),
-  courses: many(courses),
-  students: many(students),
+  accounts: many(accounts),
 }));
 
-export const accountsRelations = relations(accounts, ({ one }) => ({
+export const coursesRelations = relations(courses, ({ many }) => ({
+  enrollments: many(enrollments),
+  coursework: many(coursework),
+  topics: many(topics),
+  studentProgress: many(studentProgress),
+  notifications: many(notifications),
+}));
+
+export const enrollmentsRelations = relations(enrollments, ({ one }) => ({
+  course: one(courses, {
+    fields: [enrollments.courseId],
+    references: [courses.id],
+  }),
   user: one(users, {
-    fields: [accounts.userId],
+    fields: [enrollments.userId],
     references: [users.id],
+  }),
+}));
+
+export const courseworkRelations = relations(coursework, ({ one, many }) => ({
+  course: one(courses, {
+    fields: [coursework.courseId],
+    references: [courses.id],
+  }),
+  submissions: many(submissions),
+}));
+
+export const topicsRelations = relations(topics, ({ one }) => ({
+  course: one(courses, {
+    fields: [topics.courseId],
+    references: [courses.id],
+  }),
+}));
+
+export const submissionsRelations = relations(submissions, ({ one }) => ({
+  coursework: one(coursework, {
+    fields: [submissions.courseworkId],
+    references: [coursework.id],
+  }),
+  student: one(users, {
+    fields: [submissions.studentId],
+    references: [users.id],
+  }),
+}));
+
+export const studentProgressRelations = relations(studentProgress, ({ one }) => ({
+  student: one(users, {
+    fields: [studentProgress.studentId],
+    references: [users.id],
+  }),
+  course: one(courses, {
+    fields: [studentProgress.courseId],
+    references: [courses.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  recipient: one(users, {
+    fields: [notifications.recipientId],
+    references: [users.id],
+    relationName: "recipient",
+  }),
+  sender: one(users, {
+    fields: [notifications.senderId],
+    references: [users.id],
+    relationName: "sender",
+  }),
+  course: one(courses, {
+    fields: [notifications.courseId],
+    references: [courses.id],
+  }),
+  coursework: one(coursework, {
+    fields: [notifications.assignmentId],
+    references: [coursework.id],
   }),
 }));
 
@@ -124,55 +266,9 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   }),
 }));
 
-export const coursesRelations = relations(courses, ({ one, many }) => ({
-  teacher: one(users, {
-    fields: [courses.teacherId],
-    references: [users.id],
-  }),
-  students: many(students),
-  assignments: many(assignments),
-}));
-
-export const studentsRelations = relations(students, ({ one, many }) => ({
+export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, {
-    fields: [students.userId],
+    fields: [accounts.userId],
     references: [users.id],
-  }),
-  course: one(courses, {
-    fields: [students.courseId],
-    references: [courses.id],
-  }),
-  submissions: many(submissions),
-  progress: many(studentProgress),
-}));
-
-export const assignmentsRelations = relations(assignments, ({ one, many }) => ({
-  course: one(courses, {
-    fields: [assignments.courseId],
-    references: [courses.id],
-  }),
-  submissions: many(submissions),
-  progress: many(studentProgress),
-}));
-
-export const submissionsRelations = relations(submissions, ({ one }) => ({
-  assignment: one(assignments, {
-    fields: [submissions.assignmentId],
-    references: [assignments.id],
-  }),
-  student: one(students, {
-    fields: [submissions.studentId],
-    references: [students.id],
-  }),
-}));
-
-export const studentProgressRelations = relations(studentProgress, ({ one }) => ({
-  student: one(students, {
-    fields: [studentProgress.studentId],
-    references: [students.id],
-  }),
-  assignment: one(assignments, {
-    fields: [studentProgress.assignmentId],
-    references: [assignments.id],
   }),
 }));

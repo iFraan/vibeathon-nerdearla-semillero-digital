@@ -1,8 +1,21 @@
 import { z } from "zod";
 import type { Assignment, Submission } from "@/types";
-import { protectedProcedure, router } from "../trpc";
+import { protectedProcedure, createTRPCRouter,publicProcedure } from "../trpc";
 
 // --- Copied from REST API for mock data ---
+// Status mapping for TRPC API (student):
+//   "all"      => all assignments
+//   "returned" => graded/returned assignments (status === "returned")
+//   "completed" => turned in or returned (status === "turned_in" or "returned")
+//   "late"     => due date passed, not submitted (status === "assigned" and dueDate < now)
+//   "missed"   => same as "late"
+//   "pending"  => not submitted (status === "assigned")
+// For teacher:
+//   "all"      => all assignments
+//   "pending_review" => submissionCount > gradedCount
+//   "graded"   => gradedCount === submissionCount && submissionCount > 0
+//   "no_submissions" => submissionCount === 0
+
 interface AssignmentWithDetails extends Assignment {
 	courseName: string;
 	teacherName: string;
@@ -45,7 +58,7 @@ function generateMockAssignments(
 							grade: 95,
 							submittedAt: new Date(baseDate.getTime() - 24 * 60 * 60 * 1000),
 							gradedAt: new Date(baseDate.getTime() - 12 * 60 * 60 * 1000),
-						}
+					  }
 					: undefined,
 		},
 		{
@@ -73,7 +86,7 @@ function generateMockAssignments(
 							status: "assigned",
 							submittedAt: undefined,
 							gradedAt: undefined,
-						}
+					  }
 					: undefined,
 		},
 		{
@@ -101,7 +114,7 @@ function generateMockAssignments(
 							status: "assigned",
 							submittedAt: undefined,
 							gradedAt: undefined,
-						}
+					  }
 					: undefined,
 		},
 		{
@@ -132,7 +145,7 @@ function generateMockAssignments(
 								baseDate.getTime() - 3 * 24 * 60 * 60 * 1000,
 							),
 							gradedAt: new Date(baseDate.getTime() - 1 * 24 * 60 * 60 * 1000),
-						}
+					  }
 					: undefined,
 		},
 		{
@@ -160,7 +173,7 @@ function generateMockAssignments(
 							status: "assigned",
 							submittedAt: undefined,
 							gradedAt: undefined,
-						}
+					  }
 					: undefined,
 		},
 	];
@@ -176,25 +189,36 @@ function generateMockAssignments(
 		);
 	}
 
-	// Apply status filter
+	// Enhanced status filtering for students
 	if (statusFilter && role === "student") {
 		filteredAssignments = filteredAssignments.filter((assignment) => {
 			const submission = assignment.mySubmission;
-			if (!submission) return statusFilter === "assigned";
+			const now = new Date();
 
 			switch (statusFilter) {
-				case "assigned":
-					return submission.status === "assigned";
-				case "turned_in":
-					return submission.status === "turned_in";
+				case "all":
+					return true;
 				case "returned":
-					return submission.status === "returned";
+				case "graded":
+					return submission && submission.status === "returned";
+				case "completed":
+					return (
+						submission &&
+						(submission.status === "turned_in" || submission.status === "returned")
+					);
+				case "late":
+				case "missed":
 				case "overdue":
 					return (
 						assignment.dueDate &&
-						assignment.dueDate < new Date() &&
-						submission.status === "assigned"
+						assignment.dueDate < now &&
+						(!submission || submission.status === "assigned")
 					);
+				case "pending":
+				case "assigned":
+					return !submission || submission.status === "assigned";
+				case "turned_in":
+					return submission && submission.status === "turned_in";
 				default:
 					return true;
 			}
@@ -202,6 +226,8 @@ function generateMockAssignments(
 	} else if (statusFilter && role === "teacher") {
 		filteredAssignments = filteredAssignments.filter((assignment) => {
 			switch (statusFilter) {
+				case "all":
+					return true;
 				case "pending_review":
 					return assignment.submissionCount > assignment.gradedCount;
 				case "graded":
@@ -231,9 +257,8 @@ function generateMockAssignments(
 		return a.dueDate.getTime() - b.dueDate.getTime();
 	});
 }
-// --- End mock data logic ---
 
-export const assignmentsRouter = router({
+export const assignmentsRouter = createTRPCRouter({
 	list: protectedProcedure
 		.input(
 			z

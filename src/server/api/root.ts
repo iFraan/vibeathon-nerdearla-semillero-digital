@@ -15,7 +15,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
 	// post: postRouter,
-	// assignments: assignmentsRouter,
+	assignments: assignmentsRouter,
 	// classes: classesRouter,
 	courses: coursesRouter,
 	// dashboard: dashboardRouter,

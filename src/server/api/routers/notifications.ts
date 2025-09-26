@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../trpc";
+import { protectedProcedure,  createTRPCRouter,publicProcedure} from "@/server/api/trpc";
+import { google } from "googleapis";
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/database";
+import { coursework, notifications as notificationsTable, enrollments } from "@/lib/db/schema";
 
 // --- Types (should be imported from shared types in a real project) ---
 type Notification = {
@@ -231,7 +235,7 @@ function generateMockNotifications(
 }
 
 // --- tRPC Router ---
-export const notificationsRouter = router({
+export const notificationsRouter = createTRPCRouter({
 	// GET /api/notifications
 	list: protectedProcedure
 		.input(
@@ -288,4 +292,108 @@ export const notificationsRouter = router({
 			message: "All notifications marked as read",
 		};
 	}),
+  // POST /api/notifications/pollClasswork
+  pollClasswork: protectedProcedure.mutation(async ({ ctx }) => {
+    const user = ctx.session?.user;
+    if (!user) throw new Error("Authentication required");
+
+    // 1. Get user's enrolled courses
+    const userEnrollments = await db.query.enrollments.findMany({
+      where: eq(enrollments.userId, user.id),
+      columns: { courseId: true },
+    });
+    const courseIds = userEnrollments.map(e => e.courseId);
+
+    // 2. Setup Google Classroom API client (assumes OAuth2 is handled)
+    // You must provide a valid Google OAuth2 client in your context as ctx.googleAuthClient
+    const classroom = google.classroom("v1");
+    const auth = ctx.googleAuthClient;
+    if (!auth) throw new Error("Google API client not configured in context");
+
+    // 3. For each course, fetch assignments and compare
+    for (const courseId of courseIds) {
+      // a. Fetch remote assignments
+      const remoteRes = await classroom.courses.courseWork.list({
+        courseId,
+        auth,
+      });
+      const remoteAssignments = remoteRes.data.courseWork || [];
+
+      // b. Fetch local assignments
+      const localAssignments = await db.query.coursework.findMany({
+        where: eq(coursework.courseId, courseId),
+      });
+
+      // c. Build maps for efficient comparison
+      const remoteMap = new Map(remoteAssignments.map(a => [a.id, a]));
+      const localMap = new Map(localAssignments.map(a => [a.id, a]));
+
+      // d. Detect new or updated assignments
+      for (const remote of remoteAssignments) {
+        const local = localMap.get(remote.id!);
+        const isNew = !local;
+        const isUpdated =
+          local &&
+          (local.title !== remote.title ||
+            local.description !== remote.description ||
+            local.state !== remote.state);
+
+        if (isNew || isUpdated) {
+          // Create notification if not already present
+          const existingNotif = await db.query.notifications.findFirst({
+            where: eq(notificationsTable.actionUrl, `/assignments/${remote.id}`),
+          });
+          if (!existingNotif) {
+            await db.insert(notificationsTable).values({
+              userId: user.id,
+              type: "assignment",
+              title: isNew ? "New Assignment" : "Assignment Updated",
+              message: isNew
+                ? `A new assignment "${remote.title}" was posted.`
+                : `Assignment "${remote.title}" was updated.`,
+              isRead: false,
+              priority: "medium",
+              createdAt: new Date(),
+              actionUrl: `/assignments/${remote.id}`,
+              courseId,
+              courseName: remote.courseId, // or fetch course name if needed
+            });
+          }
+        }
+      }
+
+      // e. Detect deleted assignments
+      for (const local of localAssignments) {
+        if (!remoteMap.has(local.id)) {
+          // Assignment deleted
+          const existingNotif = await db.query.notifications.findFirst({
+            where: eq(notificationsTable.actionUrl, `/assignments/${local.id}`),
+          });
+          if (!existingNotif) {
+            await db.insert(notificationsTable).values({
+              userId: user.id,
+              type: "assignment",
+              title: "Assignment Deleted",
+              message: `Assignment "${local.title}" was removed.`,
+              isRead: false,
+              priority: "low",
+              createdAt: new Date(),
+              actionUrl: `/assignments/${local.id}`,
+              courseId,
+              courseName: local.courseId,
+            });
+          }
+        }
+      }
+    }
+
+    // 4. Return latest notifications for the user
+    const notifications = await db.query.notifications.findMany({
+      where: eq(notificationsTable.userId, user.id),
+      orderBy: (notificationsTable, { desc }) => [desc(notificationsTable.createdAt)],
+      limit: 20,
+    });
+
+    return notifications;
+  }),
 });

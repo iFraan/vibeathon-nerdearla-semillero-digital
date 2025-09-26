@@ -12,6 +12,8 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { accounts } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 
 /**
  * 1. CONTEXT
@@ -31,9 +33,27 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 		headers: opts.headers,
 	});
 
+	let googleAccessToken: string | null = null;
+
+	// Try to get Google access token from accounts table if user is logged in
+	if (session?.user?.id) {
+		try {
+			const account = await db.query.accounts.findFirst({
+				where: and(
+					eq(accounts.userId, session.user.id),
+					eq(accounts.providerId, "google")
+				),
+			});
+			googleAccessToken = account?.accessToken ?? null;
+		} catch (e) {
+			// fail silently, token will be null
+		}
+	}
+
 	return {
 		db,
 		session,
+		googleAccessToken,
 		...opts,
 	};
 };

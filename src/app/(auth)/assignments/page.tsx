@@ -2,11 +2,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  ClipboardList, 
-  Calendar, 
-  Clock, 
-  CheckCircle, 
+import {
+  ClipboardList,
+  Calendar,
+  Clock,
+  CheckCircle,
   AlertCircle,
   Plus,
   Eye,
@@ -45,27 +45,8 @@ interface AssignmentsData {
   };
 }
 
-async function getAssignmentsData(): Promise<AssignmentsData> {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/assignments`, {
-      cache: 'no-store'
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch assignments');
-    }
-    
-    const data = await response.json();
-    return data.data;
-  } catch (error) {
-    console.error('Error fetching assignments:', error);
-    return { 
-      assignments: [], 
-      userRole: 'student', 
-      stats: { total: 0, pending: 0, completed: 0, overdue: 0 } 
-    };
-  }
-}
+// TRPC imports
+import { api } from "@/trpc/server";
 
 function getStatusColor(status: string) {
   switch (status) {
@@ -87,27 +68,46 @@ function getStatusText(status: string) {
   }
 }
 
+type TabKey = "all" | "pending" | "completed" | "overdue";
+
+const tabStatusMap: Record<TabKey, string> = {
+  all: "all",
+  pending: "pending",
+  completed: "completed",
+  overdue: "late", // or "missed" if you want to show missed
+};
+
+async function getAssignmentsByStatus(status: string) {
+  // Call TRPC server action for assignments.list
+  // If you want to support courseId, add it here as well
+  const assignments = await api.assignments.list({ status });
+  return assignments;
+}
+
 export default async function AssignmentsPage() {
-  const { assignments, userRole, stats } = await getAssignmentsData();
-  const isOverdue = (dueDate: Date) => new Date() > new Date(dueDate);
-  
-  const pendingAssignments = assignments.filter(a => 
-    userRole === 'student' 
-      ? a.submissionStatus === 'not_submitted' 
-      : (a.submissionCount || 0) < (a.totalStudents || 1)
-  );
-  
-  const completedAssignments = assignments.filter(a => 
-    userRole === 'student' 
-      ? a.submissionStatus === 'submitted' || a.submissionStatus === 'graded'
-      : (a.submissionCount || 0) === (a.totalStudents || 0)
-  );
-  
-  const overdueAssignments = assignments.filter(a => 
-    userRole === 'student' 
-      ? a.submissionStatus === 'not_submitted' && isOverdue(a.dueDate)
-      : isOverdue(a.dueDate) && (a.submissionCount || 0) < (a.totalStudents || 1)
-  );
+  // Fetch all tab data in parallel for SSR
+  const [all, pending, completed, overdue] = await Promise.all([
+    getAssignmentsByStatus(tabStatusMap.all),
+    getAssignmentsByStatus(tabStatusMap.pending),
+    getAssignmentsByStatus(tabStatusMap.completed),
+    getAssignmentsByStatus(tabStatusMap.overdue),
+  ]);
+  console.log(all)
+
+  // Infer userRole from the first assignment if available, otherwise default to "student"
+  // In a real app, you should get this from session or API
+  const userRole =
+    all.length > 0 && (all[0] as any).mySubmission !== undefined
+      ? "student"
+      : "teacher"; // crude check, adjust as needed
+
+  // Stats
+  const stats = {
+    total: all.length,
+    pending: pending.length,
+    completed: completed.length,
+    overdue: overdue.length,
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -118,16 +118,16 @@ export default async function AssignmentsPage() {
           <p className="text-muted-foreground">
             {userRole === "student" && "Gestiona tus tareas y entregas"}
             {userRole === "teacher" && "Crea y gestiona tareas para tus estudiantes"}
-            {userRole === "coordinator" && "Vista general de todas las tareas"}
+            {userRole === "coordinator" ? "Vista general de todas las tareas" : null}
           </p>
         </div>
-        
-        {(userRole === "teacher" || userRole === "coordinator") && (
+
+        {(userRole === "teacher" || userRole === "coordinator") ? (
           <Button className="gap-2">
             <Plus className="h-4 w-4" />
             Nueva Tarea
           </Button>
-        )}
+        ) : null}
       </div>
 
       {/* Stats Overview */}
@@ -143,7 +143,7 @@ export default async function AssignmentsPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2">
@@ -155,7 +155,7 @@ export default async function AssignmentsPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2">
@@ -167,7 +167,7 @@ export default async function AssignmentsPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2">
@@ -181,32 +181,32 @@ export default async function AssignmentsPage() {
         </Card>
       </div>
 
-      {/* Assignments Tabs */}
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="all">Todas ({assignments.length})</TabsTrigger>
-          <TabsTrigger value="pending">Pendientes ({pendingAssignments.length})</TabsTrigger>
-          <TabsTrigger value="completed">Completadas ({completedAssignments.length})</TabsTrigger>
-          <TabsTrigger value="overdue">Atrasadas ({overdueAssignments.length})</TabsTrigger>
-        </TabsList>
+     {/* Assignments Tabs */}
+     <Tabs defaultValue="all" className="w-full">
+       <TabsList className="grid w-full grid-cols-4">
+         <TabsTrigger value="all">Todas ({all.length})</TabsTrigger>
+         <TabsTrigger value="pending">Pendientes ({pending.length})</TabsTrigger>
+         <TabsTrigger value="completed">Completadas ({completed.length})</TabsTrigger>
+         <TabsTrigger value="overdue">Atrasadas ({overdue.length})</TabsTrigger>
+       </TabsList>
 
-        <TabsContent value="all" className="space-y-4">
-          <AssignmentsList assignments={assignments} userRole={userRole} />
-        </TabsContent>
+       <TabsContent value="all" className="space-y-4">
+         <AssignmentsList assignments={all} userRole={userRole} />
+       </TabsContent>
 
-        <TabsContent value="pending" className="space-y-4">
-          <AssignmentsList assignments={pendingAssignments} userRole={userRole} />
-        </TabsContent>
+       <TabsContent value="pending" className="space-y-4">
+         <AssignmentsList assignments={pending} userRole={userRole} />
+       </TabsContent>
 
-        <TabsContent value="completed" className="space-y-4">
-          <AssignmentsList assignments={completedAssignments} userRole={userRole} />
-        </TabsContent>
+       <TabsContent value="completed" className="space-y-4">
+         <AssignmentsList assignments={completed} userRole={userRole} />
+       </TabsContent>
 
-        <TabsContent value="overdue" className="space-y-4">
-          <AssignmentsList assignments={overdueAssignments} userRole={userRole} />
-        </TabsContent>
-      </Tabs>
-    </div>
+       <TabsContent value="overdue" className="space-y-4">
+         <AssignmentsList assignments={overdue} userRole={userRole} />
+       </TabsContent>
+     </Tabs>
+   </div>
   )
 }
 
@@ -258,32 +258,32 @@ function AssignmentsList({ assignments, userRole }: { assignments: Assignment[],
               </div>
             </div>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground line-clamp-2">
               {assignment.description}
             </p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <span>Vence: {new Date(assignment.dueDate).toLocaleDateString()}</span>
               </div>
-              
+
               {userRole === "student" && assignment.submittedAt && (
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span>Entregado: {new Date(assignment.submittedAt).toLocaleDateString()}</span>
                 </div>
               )}
-              
+
               {userRole === "student" && assignment.grade !== undefined && (
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <span>Calificación: {assignment.grade}/{assignment.maxPoints}</span>
                 </div>
               )}
-              
+
               {userRole !== "student" && assignment.averageGrade !== undefined && (
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-blue-600" />
@@ -298,14 +298,14 @@ function AssignmentsList({ assignments, userRole }: { assignments: Assignment[],
                 <Eye className="h-4 w-4" />
                 Ver detalles
               </Button>
-              
+
               {userRole === "student" && assignment.submissionStatus === 'not_submitted' && (
                 <Button size="sm" className="gap-2">
                   <FileText className="h-4 w-4" />
                   Entregar
                 </Button>
               )}
-              
+
               {userRole === "teacher" && (
                 <>
                   <Button variant="outline" size="sm" className="gap-2">
@@ -318,7 +318,7 @@ function AssignmentsList({ assignments, userRole }: { assignments: Assignment[],
                   </Button>
                 </>
               )}
-              
+
               {userRole === "coordinator" && (
                 <Button variant="outline" size="sm" className="gap-2">
                   <Users className="h-4 w-4" />

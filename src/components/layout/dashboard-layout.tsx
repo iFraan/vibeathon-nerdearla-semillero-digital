@@ -168,7 +168,7 @@ export function DashboardLayout({
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
 									className="text-red-600"
-									onClick={() => handleSignOut("/sign-in")}
+									onClick={() => handleSignOut("/login")}
 								>
 									<LogOut className="mr-2 h-4 w-4" />
 									<span>Log out</span>

@@ -9,8 +9,9 @@ export const assignmentStatusEnum = pgEnum("assignment_status", ["assigned", "su
 
 // Users table
 export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: text("id").primaryKey(),
   email: varchar("email", { length: 255 }).unique().notNull(),
+  emailVerified: boolean("email_verified").default(false),
   name: varchar("name", { length: 255 }).notNull(),
   image: text("image"),
   googleId: varchar("google_id", { length: 255 }).unique(),
@@ -48,7 +49,7 @@ export const courses = pgTable("courses", {
 export const enrollments = pgTable("enrollments", {
   id: uuid("id").primaryKey().defaultRandom(),
   courseId: uuid("course_id").references(() => courses.id).notNull(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
+  userId: text("user_id").references(() => users.id).notNull(),
   roleInCourse: varchar("role_in_course", { length: 50 }).default("STUDENT").notNull(), // STUDENT, TEACHER, OWNER
   externalId: varchar("external_id", { length: 255 }), // Google user ID in the course context
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -75,7 +76,7 @@ export const submissions = pgTable("submissions", {
   id: uuid("id").primaryKey().defaultRandom(),
   externalId: varchar("external_id", { length: 255 }).unique().notNull(),
   courseworkId: uuid("coursework_id").references(() => coursework.id).notNull(),
-  studentId: uuid("student_id").references(() => users.id).notNull(),
+  studentId: text("student_id").references(() => users.id).notNull(),
   state: varchar("state", { length: 50 }).default("NEW").notNull(),
   late: boolean("late").default(false),
   assignedAt: timestamp("assigned_at"),
@@ -100,7 +101,7 @@ export const topics = pgTable("topics", {
 // Student progress tracking table
 export const studentProgress = pgTable("student_progress", {
   id: uuid("id").primaryKey().defaultRandom(),
-  studentId: uuid("student_id").references(() => users.id).notNull(),
+  studentId: text("student_id").references(() => users.id).notNull(),
   courseId: uuid("course_id").references(() => courses.id).notNull(),
   totalAssignments: integer("total_assignments").default(0),
   completedAssignments: integer("completed_assignments").default(0),
@@ -120,8 +121,8 @@ export const studentProgress = pgTable("student_progress", {
 // Notifications and communications log
 export const notifications = pgTable("notifications", {
   id: uuid("id").primaryKey().defaultRandom(),
-  recipientId: uuid("recipient_id").references(() => users.id).notNull(),
-  senderId: uuid("sender_id").references(() => users.id),
+  recipientId: text("recipient_id").references(() => users.id).notNull(),
+  senderId: text("sender_id").references(() => users.id),
   courseId: uuid("course_id").references(() => courses.id),
   assignmentId: uuid("assignment_id").references(() => coursework.id),
   type: notificationTypeEnum("type").notNull(),
@@ -141,7 +142,7 @@ export const notifications = pgTable("notifications", {
 // Better-Auth tables for sessions
 export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
+  userId: text("user_id").references(() => users.id).notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   ipAddress: varchar("ip_address", { length: 45 }),
   userAgent: text("user_agent"),
@@ -152,7 +153,7 @@ export const accounts = pgTable("accounts", {
   id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
+  userId: text("user_id").references(() => users.id).notNull(),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
